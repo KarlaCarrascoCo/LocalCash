@@ -1,0 +1,23 @@
+*.iml
+.gradle
+/local.properties
+/.idea/
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# SQLite locales y respaldos privados
+*.db
+*.db-shm
+*.db-wal
+localcash-backups/
+
+# Evidencia local de diagnóstico: puede contener Logcat y copias privadas de SQLite.
+/diagnostics/
+
+# Material de firma local.
+*.jks
+*.keystore

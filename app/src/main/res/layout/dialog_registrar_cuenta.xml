@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/lc_warm_background"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/form_account_title"
+        android:textColor="@color/lc_green_dark"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/input_layout_account_name"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+            android:hint="@string/form_account_name_label"
+            app:helperText="@string/form_account_name_hint">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/input_account_name"
+            android:layout_width="match_parent"
+                android:layout_height="56dp"
+            android:inputType="textCapSentences"
+            android:maxLength="50" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/input_layout_account_type"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+            android:hint="@string/form_account_type_label"
+            app:helperText="@string/form_account_type_hint">
+
+        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+            android:id="@+id/input_account_type"
+            android:layout_width="match_parent"
+                android:layout_height="56dp"
+            android:inputType="none" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/input_layout_account_entity"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:hint="@string/form_account_entity_label"
+        app:helperText="@string/form_account_entity_hint">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/input_account_entity"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:inputType="textCapSentences"
+            android:maxLength="60" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_cancel_account"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:text="@string/action_cancel"
+            android:textColor="@color/lc_green_dark" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_save_account"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:text="@string/action_save_account"
+            app:backgroundTint="@color/lc_orange_earth"
+            app:cornerRadius="14dp" />
+    </LinearLayout>
+</LinearLayout>

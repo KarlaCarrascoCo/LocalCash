@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/lc_warm_background" android:orientation="vertical" android:padding="20dp">
+    <TextView style="@style/TextAppearance.Material3.HeadlineMedium" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/map_title" android:textColor="@color/lc_green_dark" />
+    <TextView android:id="@+id/text_map_status" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="@string/map_offline_description" android:textColor="@color/lc_text_secondary" />
+    <com.localcash.app.ui.LocationMapView android:id="@+id/location_map" android:layout_width="match_parent" android:layout_height="0dp" android:layout_marginTop="16dp" android:layout_weight="1" />
+</LinearLayout>

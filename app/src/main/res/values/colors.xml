@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="lc_green_dark">#10392B</color>
+    <color name="lc_orange_earth">#C85B17</color>
+    <color name="lc_warm_background">#F5F3EF</color>
+    <color name="lc_text_primary">#18231E</color>
+    <color name="lc_text_secondary">#647069</color>
+    <color name="lc_income">#26734D</color>
+    <color name="lc_expense">#B54708</color>
+    <color name="lc_income_container">#E7F4EA</color>
+    <color name="lc_expense_container">#FCEBDD</color>
+    <color name="lc_surface">#FFFFFFFF</color>
+    <color name="lc_outline">#E1E4DE</color>
+    <color name="lc_nav_unselected">#778078</color>
+</resources>

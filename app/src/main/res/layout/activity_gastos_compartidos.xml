@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/lc_warm_background">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
+        <TextView style="@style/TextAppearance.Material3.HeadlineMedium" android:text="@string/shared_title" android:textColor="@color/lc_green_dark" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="@string/shared_subtitle" android:textColor="@color/lc_text_secondary" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/button_select_shared_contacts" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="20dp" android:text="@string/action_select_shared_contacts" />
+        <TextView android:id="@+id/text_shared_contacts" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/shared_contacts_none" android:textColor="@color/lc_text_secondary" />
+        <EditText android:id="@+id/input_shared_description" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/shared_description_hint" />
+        <EditText android:id="@+id/input_shared_total" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/shared_total_hint" android:inputType="number" />
+        <com.google.android.material.button.MaterialButton xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/button_add_shared" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="@string/action_split_expense" app:backgroundTint="@color/lc_orange_earth" />
+        <LinearLayout android:id="@+id/list_shared" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:orientation="vertical" />
+    </LinearLayout>
+</ScrollView>

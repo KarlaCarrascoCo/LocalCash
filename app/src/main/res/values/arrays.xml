@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="movement_categories">
+        <item>Alimentación</item>
+        <item>Transporte</item>
+        <item>Vivienda</item>
+        <item>Salud</item>
+        <item>Entretenimiento</item>
+        <item>Sueldo</item>
+        <item>Ventas</item>
+        <item>Regalos</item>
+        <item>Otros</item>
+    </string-array>
+    <string-array name="account_types">
+        <item>Efectivo</item>
+        <item>Cuenta corriente</item>
+        <item>Cuenta vista</item>
+        <item>Cuenta de ahorro</item>
+        <item>Tarjeta de crédito</item>
+        <item>Cuenta digital</item>
+        <item>Otra</item>
+    </string-array>
+    <string-array name="payment_methods">
+        <item>Efectivo</item>
+        <item>Tarjeta de débito</item>
+        <item>Tarjeta de crédito</item>
+        <item>Transferencia</item>
+        <item>Cheque</item>
+        <item>Cuenta digital</item>
+        <item>Otro</item>
+    </string-array>
+</resources>
