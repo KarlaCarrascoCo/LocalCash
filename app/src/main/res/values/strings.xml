@@ -169,6 +169,11 @@
     <string name="shared_subtitle">Divide el total entre tú y los contactos seleccionados.</string>
     <string name="shared_description_hint">Descripción del gasto</string>
     <string name="shared_total_hint">Monto total en pesos</string>
+    <string name="shared_detail_hint">Productos o servicios</string>
+    <string name="shared_detail_helper">Uno por línea: descripción | monto. La suma debe coincidir con el total.</string>
+    <string name="action_custom_allocation">Asignar montos personalizados</string>
+    <string name="shared_custom_allocation_title">Monto que debe cada contacto</string>
+    <string name="error_shared_detail">Revisa el detalle y las asignaciones. Los productos deben sumar el total y las deudas no pueden superarlo.</string>
     <string name="action_select_shared_contacts">Seleccionar participantes</string>
     <string name="shared_contacts_none">Selecciona uno o más contactos. Tú también cuentas como participante.</string>
     <string name="shared_contacts_selected">%1$d contacto(s) seleccionado(s) + tú</string>
@@ -190,6 +195,10 @@
     <string name="map_offline_description">Sin conexión: se mostrarán las regiones que hayas descargado.</string>
     <string name="map_empty">No hay movimientos con ubicación guardada.</string>
     <string name="action_download_offline_map">Descargar región para uso sin conexión</string>
+    <string name="action_export_geolocated">Exportar movimientos geolocalizados</string>
+    <string name="map_export_empty">No hay movimientos geolocalizados para exportar.</string>
+    <string name="map_export_success">Archivo CSV exportado correctamente.</string>
+    <string name="map_export_error">No se pudo exportar el archivo.</string>
     <string name="map_download_requires_connection">Conéctate a Internet para descargar una región. Tus movimientos siguen disponibles localmente.</string>
     <string name="map_download_no_location">Registra al menos un movimiento con coordenadas para descargar una región cercana.</string>
     <string name="map_download_started">Descargando una región acotada alrededor de tus movimientos…</string>

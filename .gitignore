@@ -26,3 +26,4 @@ localcash-backups/
 /final-build.log
 /interface-build.log
 /pending-features-build.log
+/final-missing-features-build.log

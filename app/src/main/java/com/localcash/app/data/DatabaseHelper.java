@@ -13,12 +13,15 @@ import com.localcash.app.model.Movimiento;
 public final class DatabaseHelper extends SQLiteOpenHelper {
 
     public static final String DATABASE_NAME = "localcash.db";
-    public static final int DATABASE_VERSION = 6;
+    public static final int DATABASE_VERSION = 7;
     public static final String TABLE_CUENTAS = "cuentas";
     public static final String TABLE_MOVIMIENTOS = "movimientos";
     public static final String TABLE_COMPRAS = "compras";
     public static final String TABLE_CONTACTOS = "contactos";
     public static final String TABLE_GASTOS_COMPARTIDOS = "gastos_compartidos";
+    public static final String TABLE_COMPRAS_COMPARTIDAS = "compras_compartidas";
+    public static final String TABLE_ITEMS_COMPARTIDOS = "items_compartidos";
+    public static final String TABLE_ASIGNACIONES_COMPARTIDAS = "asignaciones_compartidas";
 
     public static final String COLUMN_ID = "id";
     public static final String COLUMN_CUENTA_ID = "cuenta_id";
@@ -108,6 +111,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
         database.execSQL(createMovimientosTable(TABLE_MOVIMIENTOS, true, true, true));
         crearIndicesMovimientos(database);
         crearTablasComplementarias(database, true);
+        crearTablasCompraCompartida(database);
     }
 
     @Override
@@ -126,6 +130,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
         }
         if (oldVersion < 6) {
             migrarVersion5AVersion6(database);
+        }
+        if (oldVersion < 7) {
+            migrarVersion6AVersion7(database);
         }
     }
 
@@ -261,6 +268,18 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
+    /** Añade el desglose de compras grupales sin modificar deudas históricas. */
+    private void migrarVersion6AVersion7(SQLiteDatabase database) {
+        database.beginTransaction();
+        try {
+            crearTablasCompraCompartida(database);
+            verificarClavesForaneas(database);
+            database.setTransactionSuccessful();
+        } finally {
+            database.endTransaction();
+        }
+    }
+
     /** Comprueba los campos heredados antes de eliminar la tabla de versión 1. */
     private static void verificarDatosMigrados(SQLiteDatabase database) {
         long ausentesEnMigracion = DatabaseUtils.longForQuery(database,
@@ -366,5 +385,26 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
                 + TABLE_CONTACTOS + "(" + COLUMN_ID + ") ON DELETE RESTRICT)");
         database.execSQL("CREATE INDEX IF NOT EXISTS idx_gastos_compartidos_contacto ON "
                 + TABLE_GASTOS_COMPARTIDOS + "(contacto_id)");
+    }
+
+    private static void crearTablasCompraCompartida(SQLiteDatabase database) {
+        database.execSQL("CREATE TABLE IF NOT EXISTS " + TABLE_COMPRAS_COMPARTIDAS + " ("
+                + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + COLUMN_DESCRIPCION
+                + " TEXT NOT NULL, " + COLUMN_MONTO + " INTEGER NOT NULL CHECK(" + COLUMN_MONTO
+                + " > 0), " + COLUMN_FECHA + " INTEGER NOT NULL)");
+        database.execSQL("CREATE TABLE IF NOT EXISTS " + TABLE_ITEMS_COMPARTIDOS + " ("
+                + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, compra_id INTEGER NOT NULL, "
+                + COLUMN_DESCRIPCION + " TEXT NOT NULL, " + COLUMN_MONTO + " INTEGER NOT NULL CHECK("
+                + COLUMN_MONTO + " > 0), FOREIGN KEY(compra_id) REFERENCES "
+                + TABLE_COMPRAS_COMPARTIDAS + "(" + COLUMN_ID + ") ON DELETE RESTRICT)");
+        database.execSQL("CREATE TABLE IF NOT EXISTS " + TABLE_ASIGNACIONES_COMPARTIDAS + " ("
+                + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, compra_id INTEGER NOT NULL, contacto_id INTEGER NOT NULL, "
+                + "monto_deuda INTEGER NOT NULL CHECK(monto_deuda > 0), " + COLUMN_PAGADO
+                + " INTEGER NOT NULL DEFAULT 0 CHECK(" + COLUMN_PAGADO + " IN (0, 1)), "
+                + "FOREIGN KEY(compra_id) REFERENCES " + TABLE_COMPRAS_COMPARTIDAS + "(" + COLUMN_ID
+                + ") ON DELETE RESTRICT, FOREIGN KEY(contacto_id) REFERENCES " + TABLE_CONTACTOS
+                + "(" + COLUMN_ID + ") ON DELETE RESTRICT)");
+        database.execSQL("CREATE INDEX IF NOT EXISTS idx_asignaciones_compra ON "
+                + TABLE_ASIGNACIONES_COMPARTIDAS + "(compra_id)");
     }
 }

@@ -17,7 +17,9 @@ import com.localcash.app.model.GastoCompartido;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Locale;
 
 /** División local de gastos entre el usuario y varios contactos. */
@@ -25,10 +27,12 @@ public final class GastosCompartidosActivity extends AppCompatActivity {
     private ContactoRepository contactos;
     private GastoCompartidoRepository gastos;
     private EditText descripcion, total;
+    private EditText detalle;
     private LinearLayout lista;
     private TextView contactosSeleccionadosTexto;
     private List<Contacto> contactosDisponibles = new ArrayList<>();
     private final List<Contacto> contactosSeleccionados = new ArrayList<>();
+    private final Map<Long, Long> asignacionesPersonalizadas = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle state) {
@@ -38,10 +42,12 @@ public final class GastosCompartidosActivity extends AppCompatActivity {
         gastos = new GastoCompartidoRepository(this);
         descripcion = findViewById(R.id.input_shared_description);
         total = findViewById(R.id.input_shared_total);
+        detalle = findViewById(R.id.input_shared_details);
         lista = findViewById(R.id.list_shared);
         contactosSeleccionadosTexto = findViewById(R.id.text_shared_contacts);
         findViewById(R.id.button_select_shared_contacts).setOnClickListener(v -> seleccionarContactos());
         findViewById(R.id.button_add_shared).setOnClickListener(v -> agregar());
+        findViewById(R.id.button_custom_allocation).setOnClickListener(v -> asignarMontosPersonalizados());
         cargar();
     }
 
@@ -90,10 +96,29 @@ public final class GastosCompartidosActivity extends AppCompatActivity {
             Toast.makeText(this, R.string.error_shared_fields, Toast.LENGTH_SHORT).show();
             return;
         }
-        gastos.crearParaContactos(contactosSeleccionados, texto, monto);
+        try {
+            List<String> items = new ArrayList<>();
+            for (String linea : detalle.getText().toString().split("\\n")) {
+                if (!linea.trim().isEmpty()) items.add(linea.trim());
+            }
+            if (items.isEmpty()) {
+                if (!asignacionesPersonalizadas.isEmpty()) {
+                    throw new IllegalArgumentException("La asignación personalizada requiere detalle.");
+                }
+                gastos.crearParaContactos(contactosSeleccionados, texto, monto);
+            } else {
+                gastos.crearCompraDetallada(contactosSeleccionados, texto, monto, items,
+                        asignacionesPersonalizadas.isEmpty() ? null : asignacionesPersonalizadas);
+            }
+        } catch (RuntimeException error) {
+            Toast.makeText(this, R.string.error_shared_detail, Toast.LENGTH_LONG).show();
+            return;
+        }
         descripcion.setText("");
         total.setText("");
+        detalle.setText("");
         contactosSeleccionados.clear();
+        asignacionesPersonalizadas.clear();
         cargar();
     }
 
@@ -115,7 +140,7 @@ public final class GastosCompartidosActivity extends AppCompatActivity {
                     gasto.getDescripcion(), formato.format(gasto.getMontoDeuda()), gasto.getParticipantes())
                     + " · " + getString(gasto.isPagado() ? R.string.shared_status_paid : R.string.shared_status_pending));
             item.setChecked(gasto.isPagado());
-            item.setOnCheckedChangeListener((button, pagado) -> gastos.marcarPagado(gasto.getId(), pagado));
+            item.setOnCheckedChangeListener((button, pagado) -> gastos.marcarPagado(gasto, pagado));
             lista.addView(item);
         }
         if (lista.getChildCount() == 0) {
@@ -148,5 +173,35 @@ public final class GastosCompartidosActivity extends AppCompatActivity {
         for (int i = contactosSeleccionados.size() - 1; i >= 0; i--) {
             if (contactosSeleccionados.get(i).getId() == id) contactosSeleccionados.remove(i);
         }
+    }
+
+    private void asignarMontosPersonalizados() {
+        if (contactosSeleccionados.isEmpty()) {
+            Toast.makeText(this, R.string.shared_contacts_none, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        LinearLayout campos = new LinearLayout(this); campos.setOrientation(LinearLayout.VERTICAL);
+        campos.setPadding(48, 0, 48, 0);
+        Map<Long, EditText> entradas = new HashMap<>();
+        for (Contacto contacto : contactosSeleccionados) {
+            EditText entrada = new EditText(this); entrada.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+            entrada.setHint(contacto.getNombre());
+            if (asignacionesPersonalizadas.containsKey(contacto.getId())) {
+                entrada.setText(String.valueOf(asignacionesPersonalizadas.get(contacto.getId())));
+            }
+            entradas.put(contacto.getId(), entrada); campos.addView(entrada);
+        }
+        new AlertDialog.Builder(this).setTitle(R.string.shared_custom_allocation_title).setView(campos)
+                .setNegativeButton(R.string.action_cancel, null).setPositiveButton(android.R.string.ok, (d, w) -> {
+                    asignacionesPersonalizadas.clear();
+                    try {
+                        for (Map.Entry<Long, EditText> entrada : entradas.entrySet()) {
+                            asignacionesPersonalizadas.put(entrada.getKey(), Long.parseLong(entrada.getValue().getText().toString()));
+                        }
+                    } catch (NumberFormatException error) {
+                        asignacionesPersonalizadas.clear();
+                        Toast.makeText(this, R.string.error_shared_detail, Toast.LENGTH_SHORT).show();
+                    }
+                }).show();
     }
 }

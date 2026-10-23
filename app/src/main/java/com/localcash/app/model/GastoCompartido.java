@@ -9,17 +9,27 @@ public final class GastoCompartido {
     private final int participantes;
     private final long montoDeuda;
     private final boolean pagado;
+    private final String detalleCompra;
+    private final boolean asignacionPersonalizada;
 
     public GastoCompartido(long id, String contacto, String descripcion, long montoTotal,
                            int participantes, long montoDeuda) {
-        this(id, contacto, descripcion, montoTotal, participantes, montoDeuda, false);
+        this(id, contacto, descripcion, montoTotal, participantes, montoDeuda, false, null, false);
     }
 
     public GastoCompartido(long id, String contacto, String descripcion, long montoTotal,
                            int participantes, long montoDeuda, boolean pagado) {
+        this(id, contacto, descripcion, montoTotal, participantes, montoDeuda, pagado, null, false);
+    }
+
+    public GastoCompartido(long id, String contacto, String descripcion, long montoTotal,
+                           int participantes, long montoDeuda, boolean pagado,
+                           String detalleCompra, boolean asignacionPersonalizada) {
         this.id = id; this.contacto = contacto; this.descripcion = descripcion;
         this.montoTotal = montoTotal; this.participantes = participantes; this.montoDeuda = montoDeuda;
         this.pagado = pagado;
+        this.detalleCompra = detalleCompra;
+        this.asignacionPersonalizada = asignacionPersonalizada;
     }
     public long getId() { return id; }
     public String getContacto() { return contacto; }
@@ -28,4 +38,6 @@ public final class GastoCompartido {
     public int getParticipantes() { return participantes; }
     public long getMontoDeuda() { return montoDeuda; }
     public boolean isPagado() { return pagado; }
+    public String getDetalleCompra() { return detalleCompra; }
+    public boolean isAsignacionPersonalizada() { return asignacionPersonalizada; }
 }

@@ -1,6 +1,8 @@
 package com.localcash.app;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
@@ -37,12 +39,15 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 /** Mapa MapLibre de las coordenadas guardadas; no solicita ubicación del dispositivo. */
 public final class MapActivity extends AppCompatActivity {
 
     private static final String MAP_STYLE_URL = "https://demotiles.maplibre.org/style.json";
     private static final int MAX_MOVEMENTS = 100;
+    private static final int REQUEST_EXPORT_GEOLOCATED = 71;
     private static final double OFFLINE_REGION_HALF_SPAN = 0.015d;
     private static final double OFFLINE_MIN_ZOOM = 10d;
     private static final double OFFLINE_MAX_ZOOM = 14d;
@@ -72,6 +77,7 @@ public final class MapActivity extends AppCompatActivity {
         downloadOfflineButton = findViewById(R.id.button_download_offline_map);
         mapView.onCreate(state);
         downloadOfflineButton.setOnClickListener(view -> descargarRegionOffline());
+        findViewById(R.id.button_export_geolocated).setOnClickListener(view -> solicitarDestinoExportacion());
 
         mapView.getMapAsync(mapLibreMap -> {
             map = mapLibreMap;
@@ -212,6 +218,52 @@ public final class MapActivity extends AppCompatActivity {
         Network network = manager.getActiveNetwork();
         NetworkCapabilities capabilities = network == null ? null : manager.getNetworkCapabilities(network);
         return capabilities != null && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
+    }
+
+    private void solicitarDestinoExportacion() {
+        if (movimientosConUbicacion.isEmpty()) {
+            status.setText(R.string.map_export_empty);
+            return;
+        }
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("text/csv");
+        intent.putExtra(Intent.EXTRA_TITLE, "localcash_movimientos_geolocalizados.csv");
+        startActivityForResult(intent, REQUEST_EXPORT_GEOLOCATED);
+    }
+
+    @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_EXPORT_GEOLOCATED && resultCode == RESULT_OK && data != null
+                && data.getData() != null) {
+            exportarCsv(data.getData());
+        }
+    }
+
+    private void exportarCsv(Uri destino) {
+        databaseExecutor.execute(() -> {
+            try (OutputStream output = getContentResolver().openOutputStream(destino, "w")) {
+                if (output == null) throw new java.io.IOException("Destino no disponible");
+                StringBuilder csv = new StringBuilder("fecha,tipo,descripcion,monto,cuenta,categoria,latitud,longitud\n");
+                for (Movimiento movimiento : new MovimientoRepository(this).obtenerHistorial(-1L, null)) {
+                    if (movimiento.getLatitud() != null && movimiento.getLongitud() != null) {
+                        csv.append(csv(movimiento.getFecha())).append(',').append(csv(movimiento.getTipo())).append(',')
+                                .append(csv(movimiento.getDescripcion())).append(',').append(movimiento.getMonto()).append(',')
+                                .append(csv(movimiento.getNombreCuenta())).append(',').append(csv(movimiento.getCategoria())).append(',')
+                                .append(movimiento.getLatitud()).append(',').append(movimiento.getLongitud()).append('\n');
+                    }
+                }
+                output.write(csv.toString().getBytes(StandardCharsets.UTF_8));
+                mainHandler.post(() -> status.setText(R.string.map_export_success));
+            } catch (Exception error) {
+                mainHandler.post(() -> status.setText(R.string.map_export_error));
+            }
+        });
+    }
+
+    private static String csv(Object value) {
+        String text = value == null ? "" : String.valueOf(value);
+        return '"' + text.replace("\"", "\"\"") + '"';
     }
 
     @Override protected void onStart() { super.onStart(); mapView.onStart(); }
