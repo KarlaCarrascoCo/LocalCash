@@ -140,7 +140,20 @@
     <string name="shared_empty">No hay deudas asignadas.</string>
     <string name="error_shared_fields">Selecciona contactos e ingresa una descripción y monto válidos.</string>
     <string name="more_title">Más herramientas</string>
-    <string name="map_title">Mapa local de movimientos</string>
-    <string name="map_offline_description">Mapa sin conexión. Arrastra para desplazar los puntos registrados.</string>
+    <string name="map_title">Mapa de movimientos</string>
+    <string name="map_loading">Cargando el mapa…</string>
+    <string name="map_online_ready">Mapa listo. Selecciona un marcador para ver su detalle.</string>
+    <string name="map_offline_description">Sin conexión: se mostrarán las regiones que hayas descargado.</string>
     <string name="map_empty">No hay movimientos con ubicación guardada.</string>
+    <string name="action_download_offline_map">Descargar región para uso sin conexión</string>
+    <string name="map_download_requires_connection">Conéctate a Internet para descargar una región. Tus movimientos siguen disponibles localmente.</string>
+    <string name="map_download_no_location">Registra al menos un movimiento con coordenadas para descargar una región cercana.</string>
+    <string name="map_download_started">Descargando una región acotada alrededor de tus movimientos…</string>
+    <string name="map_download_progress">Región sin conexión: %1$d/%2$d recursos.</string>
+    <string name="map_download_complete">Región descargada y disponible sin conexión.</string>
+    <string name="map_offline_available">Hay una región descargada para consulta sin conexión.</string>
+    <string name="map_load_error">No se pudo cargar el mapa. Comprueba tu conexión o descarga una región para uso sin conexión.</string>
+    <string name="map_download_error">No se pudo descargar la región: %1$s</string>
+    <string name="map_tile_limit_error">La descarga alcanzó el límite de recursos del mapa.</string>
+    <string name="map_default_marker_title">Movimiento</string>
 </resources>

@@ -21,3 +21,6 @@ localcash-backups/
 # Material de firma local.
 *.jks
 *.keystore
+
+/maplibre-build.log
+/final-build.log
