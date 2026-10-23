@@ -1,7 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/lc_warm_background" android:orientation="vertical" android:padding="20dp">
-    <TextView style="@style/TextAppearance.Material3.HeadlineMedium" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/more_title" android:textColor="@color/lc_green_dark" />
-    <com.google.android.material.button.MaterialButton android:id="@+id/button_more_contacts" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:text="@string/contacts_title" app:backgroundTint="@color/lc_green_dark" />
-    <com.google.android.material.button.MaterialButton android:id="@+id/button_more_shared" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="@string/shared_title" app:backgroundTint="@color/lc_orange_earth" />
-    <com.google.android.material.button.MaterialButton android:id="@+id/button_more_map" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="@string/map_title" app:backgroundTint="@color/lc_green_dark" />
-</LinearLayout>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/lc_warm_background"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            style="@style/TextAppearance.Material3.HeadlineMedium"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/more_title"
+            android:textColor="@color/lc_green_dark" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="@string/more_subtitle"
+            android:textColor="@color/lc_text_secondary" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_more_accounts"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="24dp"
+            android:text="@string/quick_accounts"
+            app:backgroundTint="@color/lc_green_dark" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_more_contacts"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="10dp"
+            android:text="@string/contacts_title" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_more_shared"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="10dp"
+            android:text="@string/shared_title"
+            app:backgroundTint="@color/lc_orange_earth" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_more_map"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="10dp"
+            android:text="@string/map_title" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_more_security"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="10dp"
+            android:text="@string/security_title" />
+    </LinearLayout>
+</ScrollView>

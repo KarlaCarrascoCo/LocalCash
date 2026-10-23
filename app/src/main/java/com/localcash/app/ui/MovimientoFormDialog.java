@@ -54,9 +54,12 @@ public final class MovimientoFormDialog extends Dialog {
     private TextInputLayout categoryLayout;
     private TextInputLayout accountLayout;
     private TextInputLayout paymentLayout;
+    private TextInputLayout otherPaymentLayout;
     private View associatedAccountContainer;
+    private View optionalSection;
     private TextInputEditText descriptionInput;
     private TextInputEditText amountInput;
+    private TextInputEditText otherPaymentInput;
     private AutoCompleteTextView categoryInput;
     private AutoCompleteTextView accountInput;
     private AutoCompleteTextView paymentInput;
@@ -98,9 +101,12 @@ public final class MovimientoFormDialog extends Dialog {
         categoryLayout = findViewById(R.id.input_layout_category);
         accountLayout = findViewById(R.id.input_layout_account);
         paymentLayout = findViewById(R.id.input_layout_payment);
+        otherPaymentLayout = findViewById(R.id.input_layout_other_payment);
         associatedAccountContainer = findViewById(R.id.container_associated_account);
+        optionalSection = findViewById(R.id.optional_movement_section);
         descriptionInput = findViewById(R.id.input_description);
         amountInput = findViewById(R.id.input_amount);
+        otherPaymentInput = findViewById(R.id.input_other_payment);
         categoryInput = findViewById(R.id.input_category);
         accountInput = findViewById(R.id.input_account);
         paymentInput = findViewById(R.id.input_payment);
@@ -111,10 +117,10 @@ public final class MovimientoFormDialog extends Dialog {
         configurarSelectorMedioPago();
         typeToggleGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
             if (isChecked) {
-                actualizarEtiquetaMedio();
+                actualizarFormularioPorTipo();
             }
         });
-        actualizarEtiquetaMedio();
+        actualizarFormularioPorTipo();
         actualizarCuentasCompatibles(null);
 
         TextView dateValue = findViewById(R.id.text_form_date_value);
@@ -124,6 +130,7 @@ public final class MovimientoFormDialog extends Dialog {
         findViewById(R.id.button_cancel_movement).setOnClickListener(view -> dismiss());
         findViewById(R.id.button_save_movement).setOnClickListener(view -> validarYConfirmar());
         findViewById(R.id.button_capture_location).setOnClickListener(view -> capturarUbicacion());
+        findViewById(R.id.button_toggle_optional).setOnClickListener(view -> alternarOpcionales());
         findViewById(R.id.button_create_account).setOnClickListener(view -> {
             if (crearCuentaListener != null) {
                 crearCuentaListener.onCrearCuentaSolicitada();
@@ -189,6 +196,7 @@ public final class MovimientoFormDialog extends Dialog {
         paymentInput.setOnItemClickListener((parent, view, position, id) -> {
             selectedPaymentMethod = mapearMedioPago(position);
             paymentLayout.setError(null);
+            actualizarCampoOtro();
             actualizarCuentasCompatibles(null);
         });
     }
@@ -207,7 +215,9 @@ public final class MovimientoFormDialog extends Dialog {
         clearErrors();
 
         String descripcion = getText(descriptionInput).trim();
-        String categoria = getText(categoryInput).trim();
+        boolean esGasto = typeToggleGroup.getCheckedButtonId() == R.id.button_expense;
+        String categoria = esGasto ? getText(categoryInput).trim()
+                : getContext().getString(R.string.income_internal_category);
         String montoTexto = getText(amountInput).replace(".", "").replace(" ", "").trim();
         boolean esValido = true;
 
@@ -215,7 +225,7 @@ public final class MovimientoFormDialog extends Dialog {
             descriptionLayout.setError(getContext().getString(R.string.error_description_required));
             esValido = false;
         }
-        if (TextUtils.isEmpty(categoria)) {
+        if (esGasto && TextUtils.isEmpty(categoria)) {
             categoryLayout.setError(getContext().getString(R.string.error_category_required));
             esValido = false;
         }
@@ -230,6 +240,11 @@ public final class MovimientoFormDialog extends Dialog {
             esValido = false;
         } else if (!esCuentaCompatibleSeleccionada()) {
             accountLayout.setError(getContext().getString(R.string.error_account_incompatible));
+            esValido = false;
+        }
+        if (Movimiento.MEDIO_OTRO.equals(selectedPaymentMethod)
+                && TextUtils.isEmpty(getText(otherPaymentInput).trim())) {
+            otherPaymentLayout.setError(getContext().getString(R.string.error_other_payment_required));
             esValido = false;
         }
 
@@ -249,9 +264,12 @@ public final class MovimientoFormDialog extends Dialog {
             return;
         }
 
-        String tipo = typeToggleGroup.getCheckedButtonId() == R.id.button_expense
+        String tipo = esGasto
                 ? Movimiento.TIPO_GASTO
                 : Movimiento.TIPO_INGRESO;
+        String medioPersistido = Movimiento.MEDIO_OTRO.equals(selectedPaymentMethod)
+                ? Movimiento.MEDIO_OTRO + ": " + getText(otherPaymentInput).trim()
+                : selectedPaymentMethod;
         listener.onMovimientoConfirmado(new Movimiento(
                 0,
                 selectedAccountId,
@@ -259,7 +277,7 @@ public final class MovimientoFormDialog extends Dialog {
                 descripcion,
                 monto,
                 categoria,
-                System.currentTimeMillis(), null, latitude, longitude, null, selectedPaymentMethod));
+                System.currentTimeMillis(), null, latitude, longitude, null, medioPersistido));
         dismiss();
     }
 
@@ -332,6 +350,33 @@ public final class MovimientoFormDialog extends Dialog {
         categoryLayout.setError(null);
         accountLayout.setError(null);
         paymentLayout.setError(null);
+        otherPaymentLayout.setError(null);
+    }
+
+    private void actualizarFormularioPorTipo() {
+        boolean esGasto = typeToggleGroup.getCheckedButtonId() == R.id.button_expense;
+        actualizarEtiquetaMedio();
+        categoryLayout.setVisibility(esGasto ? View.VISIBLE : View.GONE);
+        if (!esGasto) {
+            categoryInput.setText("", false);
+            categoryLayout.setError(null);
+        }
+    }
+
+    private void actualizarCampoOtro() {
+        boolean esOtro = Movimiento.MEDIO_OTRO.equals(selectedPaymentMethod);
+        otherPaymentLayout.setVisibility(esOtro ? View.VISIBLE : View.GONE);
+        if (!esOtro) {
+            otherPaymentInput.setText("");
+            otherPaymentLayout.setError(null);
+        }
+    }
+
+    private void alternarOpcionales() {
+        boolean mostrar = optionalSection.getVisibility() != View.VISIBLE;
+        optionalSection.setVisibility(mostrar ? View.VISIBLE : View.GONE);
+        ((android.widget.TextView) findViewById(R.id.button_toggle_optional)).setText(
+                mostrar ? R.string.action_hide_optional : R.string.action_show_optional);
     }
 
     private boolean esCuentaCompatibleSeleccionada() {

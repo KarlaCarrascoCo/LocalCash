@@ -106,6 +106,24 @@
                 android:inputType="none" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/input_layout_other_payment"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:hint="@string/form_other_payment_label"
+            android:visibility="gone"
+            app:helperText="@string/form_other_payment_hint">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/input_other_payment"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:inputType="textCapSentences"
+                android:maxLength="50" />
+        </com.google.android.material.textfield.TextInputLayout>
+
         <LinearLayout
             android:id="@+id/container_associated_account"
             android:layout_width="match_parent"
@@ -156,21 +174,38 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_capture_location"
-            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:id="@+id/button_toggle_optional"
+            style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:text="@string/action_capture_location" />
+            android:text="@string/action_show_optional"
+            android:textColor="@color/lc_green_dark" />
 
-        <TextView
-            android:id="@+id/text_location_status"
+        <LinearLayout
+            android:id="@+id/optional_movement_section"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="@string/location_optional"
-            android:textColor="@color/lc_text_secondary"
-            android:textSize="12sp" />
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_capture_location"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/action_capture_location" />
+
+            <TextView
+                android:id="@+id/text_location_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/location_optional"
+                android:textColor="@color/lc_text_secondary"
+                android:textSize="12sp" />
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"

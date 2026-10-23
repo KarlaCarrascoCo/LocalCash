@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -50,6 +51,7 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
+    public static final String EXTRA_OPEN_ACCOUNT_FORM = "open_account_form";
     private static final String TAG = "LocalCash";
     private static final int MAX_RECENT_MOVEMENTS = 8;
     private static final String DATABASE_STATE_PREFERENCES = "localcash_database_state";
@@ -68,10 +70,12 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout recentMovementsContainer;
     private MaterialAutoCompleteTextView accountFilterInput;
     private MaterialButton registerMovementButton;
+    private ScrollView homeScroll;
     private ActivityResultLauncher<String[]> locationPermissionLauncher;
     private MovimientoFormDialog movimientoFormDialog;
     private List<Cuenta> cuentas = new ArrayList<>();
     private long selectedAccountId = Cuenta.ID_TODAS_LAS_CUENTAS;
+    private boolean openAccountFormOnReady;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
             volverABienvenida();
             return;
         }
+        openAccountFormOnReady = getIntent().getBooleanExtra(EXTRA_OPEN_ACCOUNT_FORM, false);
         locationPermissionLauncher = registerForActivityResult(
                 new ActivityResultContracts.RequestMultiplePermissions(), permissions -> {
                     boolean concedido = Boolean.TRUE.equals(permissions.get(Manifest.permission.ACCESS_FINE_LOCATION))
@@ -102,10 +107,17 @@ public class MainActivity extends AppCompatActivity {
         recentMovementsContainer = findViewById(R.id.recent_movements_container);
         accountFilterInput = findViewById(R.id.input_account_filter);
         registerMovementButton = findViewById(R.id.button_register_movement);
+        homeScroll = findViewById(R.id.home_scroll);
         registerMovementButton.setEnabled(false);
 
         registerMovementButton.setOnClickListener(view -> abrirFormularioMovimiento());
         findViewById(R.id.button_settings).setOnClickListener(view -> abrirFormularioCuenta());
+        findViewById(R.id.button_quick_accounts).setOnClickListener(view -> abrirFormularioCuenta());
+        findViewById(R.id.button_quick_shopping).setOnClickListener(view -> abrirModulo(ComprasActivity.class));
+        findViewById(R.id.button_quick_contacts).setOnClickListener(view -> abrirModulo(ContactosActivity.class));
+        findViewById(R.id.button_quick_shared).setOnClickListener(view -> abrirModulo(GastosCompartidosActivity.class));
+        findViewById(R.id.button_quick_map).setOnClickListener(view -> abrirModulo(MapActivity.class));
+        findViewById(R.id.button_quick_history).setOnClickListener(view -> mostrarHistorial());
         configurarNavegacion();
         inicializarPersistencia();
     }
@@ -161,6 +173,10 @@ public class MainActivity extends AppCompatActivity {
                     configurarSelectorDeCuentas();
                     registerMovementButton.setEnabled(true);
                     renderPanel(resumen, movimientos);
+                    if (openAccountFormOnReady) {
+                        openAccountFormOnReady = false;
+                        abrirFormularioCuenta();
+                    }
                 });
             } catch (IOException | RuntimeException exception) {
                 Log.e(TAG, "No fue posible inicializar la base local.", exception);
@@ -172,13 +188,26 @@ public class MainActivity extends AppCompatActivity {
     private void configurarNavegacion() {
         BottomNavigationView navigation = findViewById(R.id.bottom_navigation);
         navigation.setOnItemSelectedListener(item -> {
-            if (item.getItemId() == R.id.navigation_shopping) {
-                startActivity(new Intent(this, ComprasActivity.class));
+            if (item.getItemId() == R.id.navigation_home) {
+                homeScroll.smoothScrollTo(0, 0);
+            } else if (item.getItemId() == R.id.navigation_movements) {
+                mostrarHistorial();
+            } else if (item.getItemId() == R.id.navigation_shopping) {
+                abrirModulo(ComprasActivity.class);
             } else if (item.getItemId() == R.id.navigation_more) {
-                startActivity(new Intent(this, MasActivity.class));
+                abrirModulo(MasActivity.class);
             }
             return true;
         });
+    }
+
+    private void abrirModulo(Class<?> activityClass) {
+        startActivity(new Intent(this, activityClass));
+    }
+
+    private void mostrarHistorial() {
+        View historial = findViewById(R.id.section_recent_movements);
+        homeScroll.post(() -> homeScroll.smoothScrollTo(0, historial.getTop()));
     }
 
     private void volverABienvenida() {

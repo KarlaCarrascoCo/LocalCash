@@ -23,7 +23,7 @@
     <string name="movement_transport_category">Transporte · 15 oct.</string>
     <string name="movement_transport_amount">− $18.500</string>
     <string name="nav_home">Inicio</string>
-    <string name="nav_movements">Movimientos</string>
+    <string name="nav_movements">Historial</string>
     <string name="nav_shopping">Compras</string>
     <string name="nav_more">Más</string>
     <string name="content_description_income">Resumen de ingresos de ejemplo</string>
@@ -52,6 +52,13 @@
     <string name="action_create_account_from_movement">Crear cuenta nueva</string>
     <string name="account_filter_label">Consultar cuenta</string>
     <string name="account_filter_all">Todas las cuentas</string>
+    <string name="quick_access_title">Accesos rápidos</string>
+    <string name="quick_accounts">Cuentas</string>
+    <string name="quick_shopping">Compras</string>
+    <string name="quick_contacts">Contactos</string>
+    <string name="quick_shared">Gastos compartidos</string>
+    <string name="quick_map">Mapa</string>
+    <string name="quick_history">Historial</string>
     <string name="action_cancel">Cancelar</string>
     <string name="action_save">Guardar movimiento</string>
     <string name="action_delete">Eliminar</string>
@@ -66,6 +73,11 @@
     <string name="form_payment_method_hint">Selecciona cómo se realizó el movimiento</string>
     <string name="form_collection_method_label">Medio de cobro</string>
     <string name="form_collection_method_hint">Selecciona cómo recibiste el dinero</string>
+    <string name="form_other_payment_label">Especifica el medio</string>
+    <string name="form_other_payment_hint">Indica cómo realizaste o recibiste el pago</string>
+    <string name="income_internal_category">Sin categoría</string>
+    <string name="action_show_optional">Mostrar ubicación opcional</string>
+    <string name="action_hide_optional">Ocultar ubicación opcional</string>
     <string name="form_associated_account_label">Cuenta asociada</string>
     <string name="form_associated_account_hint">Selecciona una cuenta compatible</string>
     <string name="form_cash_account_label">Cuenta de efectivo</string>
@@ -74,6 +86,7 @@
     <string name="error_credit_card_account_required">Para tarjeta de crédito, selecciona una cuenta de tipo Tarjeta de crédito.</string>
     <string name="error_account_incompatible">La cuenta seleccionada no es compatible con el medio elegido.</string>
     <string name="error_no_compatible_account">No hay una cuenta compatible. Crea una cuenta nueva.</string>
+    <string name="error_other_payment_required">Especifica el medio seleccionado.</string>
     <string name="empty_movements_title">Aún no tienes movimientos</string>
     <string name="empty_movements_description">Registra un ingreso o gasto para ver tu actividad aquí.</string>
     <string name="movement_detail_format">%1$s · %2$s</string>
@@ -120,6 +133,7 @@
     <string name="action_add_shopping">Agregar a compras</string>
     <string name="shopping_item_format">%1$s · cantidad: %2$d · estimado: $%3$d</string>
     <string name="shopping_empty">Aún no hay compras planificadas.</string>
+    <string name="shopping_history_title">Compras planificadas e historial</string>
     <string name="error_shopping_fields">Ingresa un producto y una cantidad válida.</string>
     <string name="contacts_title">Contactos locales</string>
     <string name="contact_name_hint">Nombre del contacto</string>
@@ -127,6 +141,8 @@
     <string name="action_add_contact">Guardar contacto</string>
     <string name="contact_item_format">%1$s · %2$s</string>
     <string name="contacts_empty">Aún no hay contactos locales.</string>
+    <string name="contacts_subtitle">Guarda contactos para compras y gastos compartidos.</string>
+    <string name="contacts_list_title">Contactos guardados</string>
     <string name="error_contact_name">Ingresa el nombre del contacto.</string>
     <string name="shared_title">Gastos compartidos</string>
     <string name="shared_subtitle">Divide el total entre tú y los contactos seleccionados.</string>
@@ -138,8 +154,13 @@
     <string name="action_split_expense">Dividir y asignar deuda</string>
     <string name="shared_item_format">%1$s debe %3$s por %2$s (%4$d participantes)</string>
     <string name="shared_empty">No hay deudas asignadas.</string>
+    <string name="shared_debts_title">Deudas pendientes</string>
     <string name="error_shared_fields">Selecciona contactos e ingresa una descripción y monto válidos.</string>
     <string name="more_title">Más herramientas</string>
+    <string name="more_subtitle">Gestiona tus datos financieros y opciones de seguridad.</string>
+    <string name="security_title">Configuración y seguridad</string>
+    <string name="security_message">LocalCash solicita autenticación biométrica al abrirse. Puedes bloquear la sesión ahora para volver a la pantalla de acceso.</string>
+    <string name="action_lock_now">Bloquear ahora</string>
     <string name="map_title">Mapa de movimientos</string>
     <string name="map_loading">Cargando el mapa…</string>
     <string name="map_online_ready">Mapa listo. Selecciona un marcador para ver su detalle.</string>
