@@ -36,8 +36,8 @@
         android:layout_marginTop="6dp"
         android:text="@string/action_export_geolocated" />
 
-    <org.maplibre.android.maps.MapView
-        android:id="@+id/map_view"
+    <FrameLayout
+        android:id="@+id/map_container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="12dp"

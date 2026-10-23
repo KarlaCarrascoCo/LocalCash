@@ -9,6 +9,8 @@ import android.net.NetworkCapabilities;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -62,33 +64,59 @@ public final class MapActivity extends AppCompatActivity {
     private MapLibreMap map;
     private TextView status;
     private MaterialButton downloadOfflineButton;
+    private boolean mapAvailable;
     private boolean styleLoaded;
     private boolean markersRendered;
 
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
-        // Debe inicializarse antes de inflar MapView.
-        MapLibre.getInstance(getApplicationContext());
         setContentView(R.layout.activity_map);
 
-        mapView = findViewById(R.id.map_view);
         status = findViewById(R.id.text_map_status);
         downloadOfflineButton = findViewById(R.id.button_download_offline_map);
-        mapView.onCreate(state);
         downloadOfflineButton.setOnClickListener(view -> descargarRegionOffline());
         findViewById(R.id.button_export_geolocated).setOnClickListener(view -> solicitarDestinoExportacion());
-
-        mapView.getMapAsync(mapLibreMap -> {
-            map = mapLibreMap;
-            mapView.addOnDidFailLoadingMapListener(errorMessage -> status.setText(R.string.map_load_error));
-            map.setStyle(new Style.Builder().fromUri(MAP_STYLE_URL), style -> {
-                styleLoaded = true;
-                renderizarMovimientos();
-            });
-        });
+        iniciarMapa(state);
         cargarMovimientos();
-        informarRegionOfflineExistente();
+        if (mapAvailable) informarRegionOfflineExistente();
+    }
+
+    /**
+     * MapView contiene código nativo. Se crea de forma programática para poder conservar la
+     * actividad abierta si el dispositivo no dispone de un renderizador compatible.
+     */
+    private void iniciarMapa(Bundle state) {
+        try {
+            MapLibre.getInstance(getApplicationContext());
+            FrameLayout container = findViewById(R.id.map_container);
+            mapView = new MapView(this);
+            mapView.setLayoutParams(new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            container.addView(mapView);
+            mapView.onCreate(state);
+            mapAvailable = true;
+            mapView.getMapAsync(mapLibreMap -> {
+                try {
+                    map = mapLibreMap;
+                    mapView.addOnDidFailLoadingMapListener(errorMessage -> status.setText(R.string.map_load_error));
+                    map.setStyle(new Style.Builder().fromUri(MAP_STYLE_URL), style -> {
+                        styleLoaded = true;
+                        renderizarMovimientos();
+                    });
+                } catch (RuntimeException | LinkageError error) {
+                    mostrarMapaNoDisponible();
+                }
+            });
+        } catch (RuntimeException | LinkageError error) {
+            mostrarMapaNoDisponible();
+        }
+    }
+
+    private void mostrarMapaNoDisponible() {
+        mapAvailable = false;
+        downloadOfflineButton.setEnabled(false);
+        status.setText(R.string.map_unavailable);
     }
 
     private void cargarMovimientos() {
@@ -107,8 +135,8 @@ public final class MapActivity extends AppCompatActivity {
             mainHandler.post(() -> {
                 movimientosConUbicacion.clear();
                 movimientosConUbicacion.addAll(encontrados);
-                downloadOfflineButton.setEnabled(!encontrados.isEmpty());
-                if (encontrados.isEmpty()) {
+                downloadOfflineButton.setEnabled(mapAvailable && !encontrados.isEmpty());
+                if (mapAvailable && encontrados.isEmpty()) {
                     status.setText(R.string.map_empty);
                 }
                 renderizarMovimientos();
@@ -117,22 +145,42 @@ public final class MapActivity extends AppCompatActivity {
     }
 
     private void renderizarMovimientos() {
-        if (map == null || !styleLoaded || movimientosConUbicacion.isEmpty() || markersRendered) {
+        if (!mapAvailable || map == null || !styleLoaded || movimientosConUbicacion.isEmpty() || markersRendered) {
             return;
         }
         LatLngBounds.Builder bounds = new LatLngBounds.Builder();
-        for (Movimiento movimiento : movimientosConUbicacion) {
-            LatLng position = new LatLng(movimiento.getLatitud(), movimiento.getLongitud());
-            bounds.include(position);
-            map.addMarker(new MarkerOptions()
-                    .position(position)
-                    .title(movimiento.getDescripcion().isEmpty()
-                            ? getString(R.string.map_default_marker_title) : movimiento.getDescripcion())
-                    .snippet(formatearDetalleMarcador(movimiento)));
+        int markers = 0;
+        try {
+            for (Movimiento movimiento : movimientosConUbicacion) {
+                if (!esCoordenadaValida(movimiento)) continue;
+                LatLng position = new LatLng(movimiento.getLatitud(), movimiento.getLongitud());
+                bounds.include(position);
+                map.addMarker(new MarkerOptions()
+                        .position(position)
+                        .title(movimiento.getDescripcion().isEmpty()
+                                ? getString(R.string.map_default_marker_title) : movimiento.getDescripcion())
+                        .snippet(formatearDetalleMarcador(movimiento)));
+                markers++;
+            }
+            if (markers == 0) {
+                status.setText(R.string.map_empty);
+                return;
+            }
+            map.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 96));
+            markersRendered = true;
+            status.setText(R.string.map_online_ready);
+        } catch (RuntimeException | LinkageError error) {
+            mostrarMapaNoDisponible();
         }
-        map.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 96));
-        markersRendered = true;
-        status.setText(R.string.map_online_ready);
+    }
+
+    private static boolean esCoordenadaValida(Movimiento movimiento) {
+        if (movimiento.getLatitud() == null || movimiento.getLongitud() == null) return false;
+        double latitud = movimiento.getLatitud();
+        double longitud = movimiento.getLongitud();
+        return !Double.isNaN(latitud) && !Double.isNaN(longitud)
+                && !Double.isInfinite(latitud) && !Double.isInfinite(longitud)
+                && latitud >= -90d && latitud <= 90d && longitud >= -180d && longitud <= 180d;
     }
 
     private String formatearDetalleMarcador(Movimiento movimiento) {
@@ -143,6 +191,10 @@ public final class MapActivity extends AppCompatActivity {
     }
 
     private void descargarRegionOffline() {
+        if (!mapAvailable) {
+            status.setText(R.string.map_unavailable);
+            return;
+        }
         if (movimientosConUbicacion.isEmpty()) {
             status.setText(R.string.map_download_no_location);
             return;
@@ -201,7 +253,8 @@ public final class MapActivity extends AppCompatActivity {
     }
 
     private void informarRegionOfflineExistente() {
-        OfflineManager.getInstance(getApplicationContext()).listOfflineRegions(
+        try {
+            OfflineManager.getInstance(getApplicationContext()).listOfflineRegions(
                 new OfflineManager.ListOfflineRegionsCallback() {
                     @Override public void onList(OfflineRegion[] regions) {
                         if (regions.length > 0 && movimientosConUbicacion.isEmpty()) {
@@ -210,6 +263,9 @@ public final class MapActivity extends AppCompatActivity {
                     }
                     @Override public void onError(String error) { }
                 });
+        } catch (RuntimeException | LinkageError error) {
+            mostrarMapaNoDisponible();
+        }
     }
 
     private boolean hayConexion() {
@@ -266,11 +322,11 @@ public final class MapActivity extends AppCompatActivity {
         return '"' + text.replace("\"", "\"\"") + '"';
     }
 
-    @Override protected void onStart() { super.onStart(); mapView.onStart(); }
-    @Override protected void onResume() { super.onResume(); mapView.onResume(); }
-    @Override protected void onPause() { mapView.onPause(); super.onPause(); }
-    @Override protected void onStop() { mapView.onStop(); super.onStop(); }
-    @Override public void onLowMemory() { super.onLowMemory(); mapView.onLowMemory(); }
-    @Override protected void onSaveInstanceState(Bundle outState) { mapView.onSaveInstanceState(outState); super.onSaveInstanceState(outState); }
-    @Override protected void onDestroy() { databaseExecutor.shutdownNow(); mapView.onDestroy(); super.onDestroy(); }
+    @Override protected void onStart() { super.onStart(); if (mapView != null) mapView.onStart(); }
+    @Override protected void onResume() { super.onResume(); if (mapView != null) mapView.onResume(); }
+    @Override protected void onPause() { if (mapView != null) mapView.onPause(); super.onPause(); }
+    @Override protected void onStop() { if (mapView != null) mapView.onStop(); super.onStop(); }
+    @Override public void onLowMemory() { super.onLowMemory(); if (mapView != null) mapView.onLowMemory(); }
+    @Override protected void onSaveInstanceState(Bundle outState) { if (mapView != null) mapView.onSaveInstanceState(outState); super.onSaveInstanceState(outState); }
+    @Override protected void onDestroy() { databaseExecutor.shutdownNow(); if (mapView != null) mapView.onDestroy(); super.onDestroy(); }
 }

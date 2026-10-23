@@ -211,6 +211,7 @@
     <string name="map_download_complete">Región descargada y disponible sin conexión.</string>
     <string name="map_offline_available">Hay una región descargada para consulta sin conexión.</string>
     <string name="map_load_error">No se pudo cargar el mapa. Comprueba tu conexión o descarga una región para uso sin conexión.</string>
+    <string name="map_unavailable">El mapa no está disponible en este dispositivo. Tus movimientos permanecen guardados localmente.</string>
     <string name="map_download_error">No se pudo descargar la región: %1$s</string>
     <string name="map_tile_limit_error">La descarga alcanzó el límite de recursos del mapa.</string>
     <string name="map_default_marker_title">Movimiento</string>
