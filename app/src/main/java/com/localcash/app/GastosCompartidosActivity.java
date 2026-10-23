@@ -1,8 +1,8 @@
 package com.localcash.app;
 
 import android.os.Bundle;
+import android.content.Intent;
 import android.widget.EditText;
-import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.LinkedHashMap;
+import com.google.android.material.button.MaterialButton;
 import java.util.Locale;
 
 /** División local de gastos entre el usuario y varios contactos. */
@@ -48,6 +50,7 @@ public final class GastosCompartidosActivity extends AppCompatActivity {
         findViewById(R.id.button_select_shared_contacts).setOnClickListener(v -> seleccionarContactos());
         findViewById(R.id.button_add_shared).setOnClickListener(v -> agregar());
         findViewById(R.id.button_custom_allocation).setOnClickListener(v -> asignarMontosPersonalizados());
+        findViewById(R.id.button_back_shared).setOnClickListener(v -> finish());
         cargar();
     }
 
@@ -132,15 +135,25 @@ public final class GastosCompartidosActivity extends AppCompatActivity {
         actualizarResumenContactos();
         lista.removeAllViews();
         NumberFormat formato = NumberFormat.getCurrencyInstance(new Locale("es", "CL"));
+        Map<String, List<GastoCompartido>> grupos = new LinkedHashMap<>();
         for (GastoCompartido gasto : gastos.obtenerTodos()) {
-            CheckBox item = new CheckBox(this);
+            String clave = gasto.getDescripcion() + "\u0000" + gasto.getMontoTotal() + "\u0000" + gasto.getParticipantes();
+            List<GastoCompartido> grupo = grupos.get(clave);
+            if (grupo == null) { grupo = new ArrayList<>(); grupos.put(clave, grupo); }
+            grupo.add(gasto);
+        }
+        for (List<GastoCompartido> grupo : grupos.values()) {
+            GastoCompartido primero = grupo.get(0);
+            int pendientes = 0;
+            for (GastoCompartido gasto : grupo) if (!gasto.isPagado()) pendientes++;
+            MaterialButton item = new MaterialButton(this);
             item.setPadding(0, 16, 0, 16);
-            item.setTextColor(getColor(R.color.lc_text_primary));
-            item.setText(getString(R.string.shared_item_format, gasto.getContacto(),
-                    gasto.getDescripcion(), formato.format(gasto.getMontoDeuda()), gasto.getParticipantes())
-                    + " · " + getString(gasto.isPagado() ? R.string.shared_status_paid : R.string.shared_status_pending));
-            item.setChecked(gasto.isPagado());
-            item.setOnCheckedChangeListener((button, pagado) -> gastos.marcarPagado(gasto, pagado));
+            item.setText(getString(R.string.shared_group_item_format, primero.getDescripcion(),
+                    formato.format(primero.getMontoTotal()), pendientes, grupo.size()));
+            item.setOnClickListener(v -> startActivity(new Intent(this, DeudaGrupoActivity.class)
+                    .putExtra(DeudaGrupoActivity.EXTRA_DESCRIPCION, primero.getDescripcion())
+                    .putExtra(DeudaGrupoActivity.EXTRA_MONTO_TOTAL, primero.getMontoTotal())
+                    .putExtra(DeudaGrupoActivity.EXTRA_PARTICIPANTES, primero.getParticipantes())));
             lista.addView(item);
         }
         if (lista.getChildCount() == 0) {

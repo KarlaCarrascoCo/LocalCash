@@ -74,6 +74,7 @@
     <string name="quick_map">Mapa</string>
     <string name="quick_history">Historial</string>
     <string name="action_cancel">Cancelar</string>
+    <string name="action_back">Volver</string>
     <string name="action_save">Guardar movimiento</string>
     <string name="action_delete">Eliminar</string>
     <string name="error_description_required">Ingresa una descripción.</string>
@@ -179,6 +180,10 @@
     <string name="shared_contacts_selected">%1$d contacto(s) seleccionado(s) + tú</string>
     <string name="action_split_expense">Dividir y asignar deuda</string>
     <string name="shared_item_format">%1$s debe %3$s por %2$s (%4$d participantes)</string>
+    <string name="shared_group_item_format">%1$s · total %2$s\n%3$d de %4$d deudas pendientes · Ver participantes</string>
+    <string name="shared_group_title">Deuda compartida</string>
+    <string name="shared_group_participants">Participantes y estado de pago</string>
+    <string name="shared_participant_debt_format">%1$s debe %2$s · %3$s</string>
     <string name="shared_empty">No hay deudas asignadas.</string>
     <string name="shared_debts_title">Deudas pendientes</string>
     <string name="shared_status_pending">Pendiente</string>

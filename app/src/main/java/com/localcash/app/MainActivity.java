@@ -139,14 +139,6 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (!isChangingConfigurations() && !isFinishing()) {
-            AuthSession.clear();
-        }
-    }
-
     private void inicializarPersistencia() {
         databaseExecutor.execute(() -> {
             try {

@@ -95,6 +95,18 @@ public final class GastoCompartidoRepository {
                 DatabaseHelper.COLUMN_ID + " = ?", new String[]{String.valueOf(gasto.getId())}) > 0;
     }
 
+    /** Recupera los participantes de un gasto para mostrarlo como un grupo navegable. */
+    public List<GastoCompartido> obtenerPorGrupo(String descripcion, long montoTotal, int participantes) {
+        List<GastoCompartido> resultado = new ArrayList<>();
+        for (GastoCompartido gasto : obtenerTodos()) {
+            if (gasto.getDescripcion().equals(descripcion) && gasto.getMontoTotal() == montoTotal
+                    && gasto.getParticipantes() == participantes) {
+                resultado.add(gasto);
+            }
+        }
+        return resultado;
+    }
+
     /** Registra una compra grupal con productos y montos asignados de forma equitativa o personalizada. */
     public void crearCompraDetallada(List<Contacto> contactos, String descripcion, long montoTotal,
                                      List<String> lineasDetalle, Map<Long, Long> asignaciones) {

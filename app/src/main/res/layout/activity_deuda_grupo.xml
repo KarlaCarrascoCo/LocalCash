@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/lc_warm_background">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
+        <com.google.android.material.button.MaterialButton android:id="@+id/button_back_group" style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content" android:layout_height="48dp" android:text="@string/action_back" android:textColor="@color/lc_green_dark" />
+        <TextView style="@style/TextAppearance.Material3.HeadlineMedium" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/shared_group_title" android:textColor="@color/lc_green_dark" />
+        <TextView android:id="@+id/text_group_description" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:textColor="@color/lc_text_primary" android:textSize="20sp" android:textStyle="bold" />
+        <TextView android:id="@+id/text_group_total" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:textColor="@color/lc_orange_earth" android:textSize="18sp" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:text="@string/shared_group_participants" android:textColor="@color/lc_text_primary" android:textStyle="bold" />
+        <LinearLayout android:id="@+id/list_group_debts" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:orientation="vertical" />
+    </LinearLayout>
+</ScrollView>

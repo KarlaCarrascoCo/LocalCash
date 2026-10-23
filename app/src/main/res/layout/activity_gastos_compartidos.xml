@@ -6,6 +6,7 @@
     android:background="@color/lc_warm_background"
     android:fillViewport="true">
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
+        <com.google.android.material.button.MaterialButton android:id="@+id/button_back_shared" style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content" android:layout_height="48dp" android:text="@string/action_back" android:textColor="@color/lc_green_dark" />
         <TextView style="@style/TextAppearance.Material3.HeadlineMedium" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/shared_title" android:textColor="@color/lc_green_dark" />
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="@string/shared_subtitle" android:textColor="@color/lc_text_secondary" />
         <com.google.android.material.button.MaterialButton android:id="@+id/button_select_shared_contacts" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="20dp" android:text="@string/action_select_shared_contacts" />
