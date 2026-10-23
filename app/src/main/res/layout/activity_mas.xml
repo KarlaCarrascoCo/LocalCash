@@ -1,69 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/lc_warm_background"
-    android:fillViewport="true">
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="20dp">
-
-        <TextView
-            style="@style/TextAppearance.Material3.HeadlineMedium"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/more_title"
-            android:textColor="@color/lc_green_dark" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:text="@string/more_subtitle"
-            android:textColor="@color/lc_text_secondary" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_more_accounts"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginTop="24dp"
-            android:text="@string/quick_accounts"
-            app:backgroundTint="@color/lc_green_dark" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_more_contacts"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginTop="10dp"
-            android:text="@string/contacts_title" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_more_shared"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginTop="10dp"
-            android:text="@string/shared_title"
-            app:backgroundTint="@color/lc_orange_earth" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_more_map"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginTop="10dp"
-            android:text="@string/map_title" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_more_security"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginTop="10dp"
-            android:text="@string/security_title" />
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/lc_warm_background">
+    <ScrollView android:layout_width="0dp" android:layout_height="0dp" android:clipToPadding="false" android:paddingStart="16dp" android:paddingTop="14dp" android:paddingEnd="16dp" android:paddingBottom="20dp" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toTopOf="@id/more_bottom_navigation" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal">
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical"><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/more_title" android:textColor="@color/lc_green_dark" android:textSize="25sp" android:textStyle="bold" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="@string/more_subtitle" android:textColor="@color/lc_text_secondary" android:textSize="12sp" /></LinearLayout>
+                <com.google.android.material.button.MaterialButton android:id="@+id/button_more_back" style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content" android:layout_height="48dp" android:text="@string/action_back" android:textAllCaps="false" android:textColor="@color/lc_green_dark" />
+            </LinearLayout>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="22dp" android:text="@string/more_tools_label" android:textColor="@color/lc_text_primary" android:textSize="15sp" android:textStyle="bold" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:orientation="vertical">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <com.google.android.material.card.MaterialCardView android:id="@+id/button_more_accounts" android:layout_width="0dp" android:layout_height="104dp" android:layout_marginEnd="6dp" android:layout_weight="1" android:clickable="true" android:focusable="true" android:foreground="?attr/selectableItemBackground" app:cardBackgroundColor="@color/lc_tool_green" app:cardCornerRadius="18dp" app:cardElevation="0dp"><LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:padding="13dp"><ImageView android:layout_width="34dp" android:layout_height="34dp" android:background="@drawable/bg_income_icon" android:contentDescription="@null" android:padding="8dp" android:src="@drawable/ic_wallet" android:tint="@color/lc_income" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="7dp" android:text="@string/quick_accounts" android:textColor="@color/lc_text_primary" android:textSize="13sp" android:textStyle="bold" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="1" android:text="@string/tool_accounts_description" android:textColor="@color/lc_text_secondary" android:textSize="10sp" /></LinearLayout></com.google.android.material.card.MaterialCardView>
+                    <com.google.android.material.card.MaterialCardView android:id="@+id/button_more_shopping" android:layout_width="0dp" android:layout_height="104dp" android:layout_marginStart="6dp" android:layout_weight="1" android:clickable="true" android:focusable="true" android:foreground="?attr/selectableItemBackground" app:cardBackgroundColor="@color/lc_tool_peach" app:cardCornerRadius="18dp" app:cardElevation="0dp"><LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:padding="13dp"><ImageView android:layout_width="34dp" android:layout_height="34dp" android:background="@drawable/bg_expense_icon" android:contentDescription="@null" android:padding="8dp" android:src="@drawable/ic_cart" android:tint="@color/lc_orange_earth" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="7dp" android:text="@string/quick_shopping" android:textColor="@color/lc_text_primary" android:textSize="13sp" android:textStyle="bold" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="1" android:text="@string/tool_shopping_description" android:textColor="@color/lc_text_secondary" android:textSize="10sp" /></LinearLayout></com.google.android.material.card.MaterialCardView>
+                </LinearLayout>
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:orientation="horizontal">
+                    <com.google.android.material.card.MaterialCardView android:id="@+id/button_more_shared" android:layout_width="0dp" android:layout_height="104dp" android:layout_marginEnd="6dp" android:layout_weight="1" android:clickable="true" android:focusable="true" android:foreground="?attr/selectableItemBackground" app:cardBackgroundColor="@color/lc_tool_lavender" app:cardCornerRadius="18dp" app:cardElevation="0dp"><LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:padding="13dp"><ImageView android:layout_width="34dp" android:layout_height="34dp" android:background="@drawable/bg_shared_icon" android:contentDescription="@null" android:padding="7dp" android:src="@drawable/ic_shared" android:tint="@color/lc_shared" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="7dp" android:maxLines="1" android:text="@string/quick_shared" android:textColor="@color/lc_text_primary" android:textSize="13sp" android:textStyle="bold" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="1" android:text="@string/tool_shared_description" android:textColor="@color/lc_text_secondary" android:textSize="10sp" /></LinearLayout></com.google.android.material.card.MaterialCardView>
+                    <com.google.android.material.card.MaterialCardView android:id="@+id/button_more_contacts" android:layout_width="0dp" android:layout_height="104dp" android:layout_marginStart="6dp" android:layout_weight="1" android:clickable="true" android:focusable="true" android:foreground="?attr/selectableItemBackground" app:cardBackgroundColor="@color/lc_tool_blue" app:cardCornerRadius="18dp" app:cardElevation="0dp"><LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:padding="13dp"><ImageView android:layout_width="34dp" android:layout_height="34dp" android:background="@drawable/bg_contacts_icon" android:contentDescription="@null" android:padding="7dp" android:src="@drawable/ic_contacts" android:tint="@color/lc_contacts" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="7dp" android:text="@string/quick_contacts" android:textColor="@color/lc_text_primary" android:textSize="13sp" android:textStyle="bold" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="1" android:text="@string/tool_contacts_description" android:textColor="@color/lc_text_secondary" android:textSize="10sp" /></LinearLayout></com.google.android.material.card.MaterialCardView>
+                </LinearLayout>
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:orientation="horizontal">
+                    <com.google.android.material.card.MaterialCardView android:id="@+id/button_more_map" android:layout_width="0dp" android:layout_height="104dp" android:layout_marginEnd="6dp" android:layout_weight="1" android:clickable="true" android:focusable="true" android:foreground="?attr/selectableItemBackground" app:cardBackgroundColor="@color/lc_tool_mint" app:cardCornerRadius="18dp" app:cardElevation="0dp"><LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:padding="13dp"><ImageView android:layout_width="34dp" android:layout_height="34dp" android:background="@drawable/bg_income_icon" android:contentDescription="@null" android:padding="7dp" android:src="@drawable/ic_map_pin" android:tint="@color/lc_green_medium" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="7dp" android:text="@string/quick_map" android:textColor="@color/lc_text_primary" android:textSize="13sp" android:textStyle="bold" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="1" android:text="@string/tool_map_description" android:textColor="@color/lc_text_secondary" android:textSize="10sp" /></LinearLayout></com.google.android.material.card.MaterialCardView>
+                    <com.google.android.material.card.MaterialCardView android:id="@+id/button_more_history" android:layout_width="0dp" android:layout_height="104dp" android:layout_marginStart="6dp" android:layout_weight="1" android:clickable="true" android:focusable="true" android:foreground="?attr/selectableItemBackground" app:cardBackgroundColor="@color/lc_tool_sand" app:cardCornerRadius="18dp" app:cardElevation="0dp"><LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:padding="13dp"><ImageView android:layout_width="34dp" android:layout_height="34dp" android:background="@drawable/bg_expense_icon" android:contentDescription="@null" android:padding="7dp" android:src="@drawable/ic_history" android:tint="@color/lc_orange_earth" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="7dp" android:text="@string/quick_history" android:textColor="@color/lc_text_primary" android:textSize="13sp" android:textStyle="bold" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="1" android:text="@string/tool_history_description" android:textColor="@color/lc_text_secondary" android:textSize="10sp" /></LinearLayout></com.google.android.material.card.MaterialCardView>
+                </LinearLayout>
+            </LinearLayout>
+            <com.google.android.material.card.MaterialCardView android:id="@+id/button_more_security" android:layout_width="match_parent" android:layout_height="82dp" android:layout_marginTop="16dp" android:clickable="true" android:focusable="true" android:foreground="?attr/selectableItemBackground" app:cardBackgroundColor="@color/lc_surface" app:cardCornerRadius="18dp" app:cardElevation="0dp" app:strokeColor="@color/lc_outline" app:strokeWidth="1dp"><LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:padding="14dp"><ImageView android:layout_width="38dp" android:layout_height="38dp" android:background="@drawable/bg_income_icon" android:contentDescription="@null" android:padding="9dp" android:src="@drawable/ic_settings" android:tint="@color/lc_green_dark" /><LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:layout_weight="1" android:orientation="vertical"><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/security_title" android:textColor="@color/lc_text_primary" android:textSize="14sp" android:textStyle="bold" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="@string/tool_security_description" android:textColor="@color/lc_text_secondary" android:textSize="11sp" /></LinearLayout><ImageView android:layout_width="18dp" android:layout_height="18dp" android:contentDescription="@null" android:src="@drawable/ic_chevron_right" android:tint="@color/lc_green_dark" /></LinearLayout></com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+    </ScrollView>
+    <LinearLayout android:id="@+id/more_bottom_navigation" android:layout_width="0dp" android:layout_height="68dp" android:background="@color/lc_surface" android:elevation="8dp" android:gravity="center" android:orientation="horizontal" android:paddingStart="4dp" android:paddingEnd="4dp" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
+        <com.google.android.material.button.MaterialButton android:id="@+id/button_more_nav_home" style="@style/Widget.Material3.Button.TextButton" android:layout_width="0dp" android:layout_height="60dp" android:layout_weight="1" android:text="@string/nav_home" android:textAllCaps="false" android:textColor="@color/lc_nav_unselected" android:textSize="11sp" app:icon="@drawable/ic_home" app:iconGravity="textTop" app:iconPadding="2dp" app:iconTint="@color/lc_nav_unselected" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/button_more_nav_history" style="@style/Widget.Material3.Button.TextButton" android:layout_width="0dp" android:layout_height="60dp" android:layout_weight="1" android:text="@string/nav_movements" android:textAllCaps="false" android:textColor="@color/lc_nav_unselected" android:textSize="11sp" app:icon="@drawable/ic_history" app:iconGravity="textTop" app:iconPadding="2dp" app:iconTint="@color/lc_nav_unselected" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/button_more_nav_shopping" style="@style/Widget.Material3.Button.TextButton" android:layout_width="0dp" android:layout_height="60dp" android:layout_weight="1" android:text="@string/nav_shopping" android:textAllCaps="false" android:textColor="@color/lc_nav_unselected" android:textSize="11sp" app:icon="@drawable/ic_cart" app:iconGravity="textTop" app:iconPadding="2dp" app:iconTint="@color/lc_nav_unselected" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/button_more_nav_more" style="@style/Widget.Material3.Button.TextButton" android:layout_width="0dp" android:layout_height="60dp" android:layout_weight="1" android:text="@string/nav_more" android:textAllCaps="false" android:textColor="@color/lc_green_dark" android:textSize="11sp" app:icon="@drawable/ic_more" app:iconGravity="textTop" app:iconPadding="2dp" app:iconTint="@color/lc_green_dark" />
     </LinearLayout>
-</ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

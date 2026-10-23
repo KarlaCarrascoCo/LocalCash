@@ -109,6 +109,34 @@ public final class MovimientoRepository {
         return movimientos;
     }
 
+    /**
+     * Obtiene los movimientos recientes de un tipo, siempre desde el más reciente al más antiguo.
+     * Un tipo nulo representa todos los movimientos.
+     */
+    public List<Movimiento> obtenerRecientesPorTipo(String tipo, int maximo) {
+        int limiteSeguro = Math.max(1, Math.min(maximo, 100));
+        boolean filtrarPorTipo = Movimiento.TIPO_INGRESO.equals(tipo)
+                || Movimiento.TIPO_GASTO.equals(tipo);
+        List<Movimiento> movimientos = new ArrayList<>();
+
+        try (Cursor cursor = databaseHelper.getReadableDatabase().query(
+                DatabaseHelper.TABLE_MOVIMIENTOS + " m INNER JOIN " + DatabaseHelper.TABLE_CUENTAS
+                        + " c ON m." + DatabaseHelper.COLUMN_CUENTA_ID + " = c."
+                        + DatabaseHelper.COLUMN_ID,
+                MOVIMIENTO_COLUMNS,
+                filtrarPorTipo ? "m." + DatabaseHelper.COLUMN_TIPO + " = ?" : null,
+                filtrarPorTipo ? new String[]{tipo} : null,
+                null,
+                null,
+                "m." + DatabaseHelper.COLUMN_FECHA + " DESC",
+                String.valueOf(limiteSeguro))) {
+            while (cursor.moveToNext()) {
+                movimientos.add(leerMovimiento(cursor));
+            }
+        }
+        return movimientos;
+    }
+
     /** Devuelve todo el historial disponible, filtrable sin interpolar valores en SQL. */
     public List<Movimiento> obtenerHistorial(long cuentaId, String tipo) {
         List<String> condiciones = new ArrayList<>();

@@ -1,6 +1,7 @@
 package com.localcash.app;
 
 import android.os.Bundle;
+import android.content.Intent;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -14,6 +15,7 @@ import com.google.android.material.button.MaterialButton;
 
 import com.localcash.app.data.CompraRepository;
 import com.localcash.app.model.Compra;
+import com.localcash.app.security.AuthSession;
 
 /** Planificación local de compras. */
 public final class ComprasActivity extends AppCompatActivity {
@@ -22,11 +24,26 @@ public final class ComprasActivity extends AppCompatActivity {
     private LinearLayout lista;
 
     @Override protected void onCreate(Bundle state) {
-        super.onCreate(state); setContentView(R.layout.activity_compras);
+        super.onCreate(state);
+        if (!AuthSession.isAuthenticated()) { startActivity(new Intent(this, WelcomeActivity.class)); finish(); return; }
+        setContentView(R.layout.activity_compras);
         repository = new CompraRepository(this); nombre = findViewById(R.id.input_shopping_name);
         cantidad = findViewById(R.id.input_shopping_quantity); precio = findViewById(R.id.input_shopping_price); lista = findViewById(R.id.list_shopping);
-        findViewById(R.id.button_add_shopping).setOnClickListener(view -> agregar()); cargar();
+        findViewById(R.id.button_add_shopping).setOnClickListener(view -> agregar());
+        configurarNavegacion();
+        cargar();
     }
+    private void configurarNavegacion() {
+        findViewById(R.id.button_shopping_nav_home).setOnClickListener(v -> abrir(MainActivity.class));
+        findViewById(R.id.button_shopping_nav_history).setOnClickListener(v -> abrir(HistorialActivity.class));
+        findViewById(R.id.button_shopping_nav_shopping).setOnClickListener(v -> { });
+        findViewById(R.id.button_shopping_nav_more).setOnClickListener(v -> abrir(MasActivity.class));
+    }
+
+    private void abrir(Class<?> destination) {
+        startActivity(new Intent(this, destination).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP));
+    }
+
     private void agregar() {
         String texto = nombre.getText().toString().trim(); int unidades; long estimado;
         try { unidades = Integer.parseInt(cantidad.getText().toString()); } catch (NumberFormatException e) { unidades = 0; }

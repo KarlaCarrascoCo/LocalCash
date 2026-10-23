@@ -2,11 +2,12 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="lc_green_dark">#10392B</color>
-    <color name="lc_orange_earth">#C85B17</color>
-    <color name="lc_warm_background">#F5F3EF</color>
-    <color name="lc_text_primary">#18231E</color>
-    <color name="lc_text_secondary">#647069</color>
+    <color name="lc_green_dark">#103D2D</color>
+    <color name="lc_green_medium">#28745C</color>
+    <color name="lc_orange_earth">#C7653E</color>
+    <color name="lc_warm_background">#FAFAF6</color>
+    <color name="lc_text_primary">#20352E</color>
+    <color name="lc_text_secondary">#64746D</color>
     <color name="lc_income">#26734D</color>
     <color name="lc_expense">#B54708</color>
     <color name="lc_income_container">#E7F4EA</color>
@@ -14,4 +15,13 @@
     <color name="lc_surface">#FFFFFFFF</color>
     <color name="lc_outline">#E1E4DE</color>
     <color name="lc_nav_unselected">#778078</color>
+    <color name="lc_balance_support">#D9E8DF</color>
+    <color name="lc_tool_green">#E5F2EA</color>
+    <color name="lc_tool_peach">#FAEDE4</color>
+    <color name="lc_tool_lavender">#EEEAFE</color>
+    <color name="lc_tool_blue">#E5F0FA</color>
+    <color name="lc_tool_mint">#E7F4EA</color>
+    <color name="lc_tool_sand">#F7F0E5</color>
+    <color name="lc_shared">#6C58B8</color>
+    <color name="lc_contacts">#2879A9</color>
 </resources>

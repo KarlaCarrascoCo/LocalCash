@@ -9,7 +9,6 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -26,7 +25,6 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.localcash.app.data.CuentaRepository;
 import com.localcash.app.data.DatabaseBackupManager;
 import com.localcash.app.data.DatabaseHelper;
@@ -67,13 +65,15 @@ public class MainActivity extends AppCompatActivity {
     private TextView incomeTotal;
     private TextView expenseTotal;
     private LinearLayout recentMovementsContainer;
-    private MaterialAutoCompleteTextView accountFilterInput;
+    private MaterialButton filterAllButton;
+    private MaterialButton filterIncomeButton;
+    private MaterialButton filterExpenseButton;
     private MaterialButton registerMovementButton;
     private ScrollView homeScroll;
     private ActivityResultLauncher<String[]> locationPermissionLauncher;
     private MovimientoFormDialog movimientoFormDialog;
     private List<Cuenta> cuentas = new ArrayList<>();
-    private long selectedAccountId = Cuenta.ID_TODAS_LAS_CUENTAS;
+    private String selectedMovementType;
     private boolean openAccountFormOnReady;
 
     @Override
@@ -104,7 +104,9 @@ public class MainActivity extends AppCompatActivity {
         incomeTotal = findViewById(R.id.text_income_total);
         expenseTotal = findViewById(R.id.text_expense_total);
         recentMovementsContainer = findViewById(R.id.recent_movements_container);
-        accountFilterInput = findViewById(R.id.input_account_filter);
+        filterAllButton = findViewById(R.id.button_filter_all);
+        filterIncomeButton = findViewById(R.id.button_filter_income);
+        filterExpenseButton = findViewById(R.id.button_filter_expense);
         registerMovementButton = findViewById(R.id.button_register_movement);
         homeScroll = findViewById(R.id.home_scroll);
         registerMovementButton.setEnabled(false);
@@ -117,6 +119,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.button_quick_shared).setOnClickListener(view -> abrirModulo(GastosCompartidosActivity.class));
         findViewById(R.id.button_quick_map).setOnClickListener(view -> abrirModulo(MapActivity.class));
         findViewById(R.id.button_quick_history).setOnClickListener(view -> abrirModulo(HistorialActivity.class));
+        configurarFiltroMovimientos();
         configurarNavegacion();
         inicializarPersistencia();
     }
@@ -161,7 +164,6 @@ public class MainActivity extends AppCompatActivity {
                     movimientoRepository = nuevoMovimientoRepository;
                     cuentaRepository = nuevoCuentaRepository;
                     cuentas = cuentasDisponibles;
-                    configurarSelectorDeCuentas();
                     registerMovementButton.setEnabled(true);
                     renderPanel(resumen, movimientos);
                     if (openAccountFormOnReady) {
@@ -268,7 +270,6 @@ public class MainActivity extends AppCompatActivity {
                         return;
                     }
                     cuentas = cuentasActualizadas;
-                    configurarSelectorDeCuentas();
                     if (movimientoFormDialog != null) {
                         movimientoFormDialog.actualizarCuentas(cuentasActualizadas, cuentaCreada);
                     }
@@ -302,22 +303,18 @@ public class MainActivity extends AppCompatActivity {
         if (cuentaRepository == null || movimientoRepository == null) {
             return;
         }
-        final long cuentaAnterior = selectedAccountId;
+        final String tipo = selectedMovementType;
         databaseExecutor.execute(() -> {
             try {
                 List<Cuenta> cuentasActualizadas = cuentaRepository.obtenerTodas();
-                long cuentaActiva = contieneCuenta(cuentasActualizadas, cuentaAnterior)
-                        ? cuentaAnterior : Cuenta.ID_TODAS_LAS_CUENTAS;
-                ResumenFinanciero resumen = movimientoRepository.obtenerResumenPorCuenta(cuentaActiva);
-                List<Movimiento> movimientos = movimientoRepository.obtenerRecientesPorCuenta(
-                        cuentaActiva, MAX_RECENT_MOVEMENTS);
+                ResumenFinanciero resumen = movimientoRepository.obtenerResumen();
+                List<Movimiento> movimientos = movimientoRepository.obtenerRecientesPorTipo(
+                        tipo, MAX_RECENT_MOVEMENTS);
                 mainHandler.post(() -> {
-                    if (isFinishing() || isDestroyed()) {
+                    if (isFinishing() || isDestroyed() || !tipoCoincideConFiltroActual(tipo)) {
                         return;
                     }
                     cuentas = cuentasActualizadas;
-                    selectedAccountId = cuentaActiva;
-                    configurarSelectorDeCuentas();
                     renderPanel(resumen, movimientos);
                 });
             } catch (RuntimeException exception) {
@@ -327,61 +324,67 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private boolean contieneCuenta(List<Cuenta> lista, long cuentaId) {
-        if (cuentaId == Cuenta.ID_TODAS_LAS_CUENTAS) {
-            return true;
-        }
-        for (Cuenta cuenta : lista) {
-            if (cuenta.getId() == cuentaId) {
-                return true;
-            }
-        }
-        return false;
+    private void configurarFiltroMovimientos() {
+        filterAllButton.setOnClickListener(view -> seleccionarFiltroMovimientos(null));
+        filterIncomeButton.setOnClickListener(view -> seleccionarFiltroMovimientos(Movimiento.TIPO_INGRESO));
+        filterExpenseButton.setOnClickListener(view -> seleccionarFiltroMovimientos(Movimiento.TIPO_GASTO));
+        actualizarEstadoFiltroMovimientos();
     }
 
-    private void configurarSelectorDeCuentas() {
-        List<String> etiquetas = new ArrayList<>();
-        etiquetas.add(getString(R.string.account_filter_all));
-        int posicionSeleccionada = 0;
-        for (int index = 0; index < cuentas.size(); index++) {
-            Cuenta cuenta = cuentas.get(index);
-            etiquetas.add(cuenta.getNombre());
-            if (cuenta.getId() == selectedAccountId) {
-                posicionSeleccionada = index + 1;
-            }
+    private void seleccionarFiltroMovimientos(String tipo) {
+        if ((tipo == null && selectedMovementType == null)
+                || (tipo != null && tipo.equals(selectedMovementType))) {
+            return;
         }
+        selectedMovementType = tipo;
+        actualizarEstadoFiltroMovimientos();
+        cargarMovimientosFiltrados();
+    }
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                this, android.R.layout.simple_list_item_1, etiquetas);
-        accountFilterInput.setAdapter(adapter);
-        accountFilterInput.setKeyListener(null);
-        accountFilterInput.setText(etiquetas.get(posicionSeleccionada), false);
-        accountFilterInput.setOnClickListener(view -> accountFilterInput.showDropDown());
-        accountFilterInput.setOnFocusChangeListener((view, hasFocus) -> {
-            if (hasFocus) {
-                accountFilterInput.showDropDown();
+    private void actualizarEstadoFiltroMovimientos() {
+        filterAllButton.setChecked(selectedMovementType == null);
+        filterIncomeButton.setChecked(Movimiento.TIPO_INGRESO.equals(selectedMovementType));
+        filterExpenseButton.setChecked(Movimiento.TIPO_GASTO.equals(selectedMovementType));
+    }
+
+    /** Actualiza solamente la lista; los totales globales permanecen visibles. */
+    private void cargarMovimientosFiltrados() {
+        if (movimientoRepository == null) {
+            return;
+        }
+        final String tipo = selectedMovementType;
+        databaseExecutor.execute(() -> {
+            try {
+                List<Movimiento> recientes = movimientoRepository.obtenerRecientesPorTipo(
+                        tipo, MAX_RECENT_MOVEMENTS);
+                mainHandler.post(() -> {
+                    if (!isFinishing() && !isDestroyed() && tipoCoincideConFiltroActual(tipo)) {
+                        renderMovimientos(recientes);
+                    }
+                });
+            } catch (RuntimeException exception) {
+                Log.e(TAG, "No fue posible filtrar los movimientos.", exception);
+                mainHandler.post(() -> mostrarErrorOperacion(R.string.error_database_operation));
             }
         });
-        accountFilterInput.setOnItemClickListener((parent, view, position, id) -> {
-            selectedAccountId = position == 0
-                    ? Cuenta.ID_TODAS_LAS_CUENTAS
-                    : cuentas.get(position - 1).getId();
-            cargarPanel();
-        });
+    }
+
+    private boolean tipoCoincideConFiltroActual(String tipo) {
+        return tipo == null ? selectedMovementType == null : tipo.equals(selectedMovementType);
     }
 
     private void cargarPanel() {
         if (movimientoRepository == null) {
             return;
         }
-        final long cuentaId = selectedAccountId;
+        final String tipo = selectedMovementType;
         databaseExecutor.execute(() -> {
             try {
-                ResumenFinanciero resumen = movimientoRepository.obtenerResumenPorCuenta(cuentaId);
-                List<Movimiento> recientes = movimientoRepository.obtenerRecientesPorCuenta(
-                        cuentaId, MAX_RECENT_MOVEMENTS);
+                ResumenFinanciero resumen = movimientoRepository.obtenerResumen();
+                List<Movimiento> recientes = movimientoRepository.obtenerRecientesPorTipo(
+                        tipo, MAX_RECENT_MOVEMENTS);
                 mainHandler.post(() -> {
-                    if (!isFinishing() && !isDestroyed()) {
+                    if (!isFinishing() && !isDestroyed() && tipoCoincideConFiltroActual(tipo)) {
                         renderPanel(resumen, recientes);
                     }
                 });
@@ -396,10 +399,22 @@ public class MainActivity extends AppCompatActivity {
         balanceTotal.setText(formatAmount(resumen.getSaldo()));
         incomeTotal.setText(formatAmount(resumen.getIngresos()));
         expenseTotal.setText(formatAmount(resumen.getGastos()));
+        renderMovimientos(movimientos);
+    }
+
+    private void renderMovimientos(List<Movimiento> movimientos) {
         recentMovementsContainer.removeAllViews();
 
         if (movimientos.isEmpty()) {
-            getLayoutInflater().inflate(R.layout.item_sin_movimientos, recentMovementsContainer, true);
+            View emptyView = getLayoutInflater().inflate(
+                    R.layout.item_sin_movimientos, recentMovementsContainer, false);
+            if (selectedMovementType != null) {
+                TextView title = emptyView.findViewById(R.id.text_empty_movements_title);
+                TextView description = emptyView.findViewById(R.id.text_empty_movements_description);
+                title.setText(R.string.empty_filtered_movements_title);
+                description.setText(R.string.empty_filtered_movements_description);
+            }
+            recentMovementsContainer.addView(emptyView);
             return;
         }
 
