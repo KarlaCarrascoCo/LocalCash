@@ -47,7 +47,8 @@ import java.nio.charset.StandardCharsets;
 /** Mapa MapLibre de las coordenadas guardadas; no solicita ubicación del dispositivo. */
 public final class MapActivity extends AppCompatActivity {
 
-    private static final String MAP_STYLE_URL = "https://demotiles.maplibre.org/style.json";
+    /** Estilo vectorial Liberty con calles, lugares y atribución OpenStreetMap/OpenMapTiles. */
+    private static final String MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
     private static final int MAX_MOVEMENTS = 100;
     private static final int REQUEST_EXPORT_GEOLOCATED = 71;
     private static final double OFFLINE_REGION_HALF_SPAN = 0.015d;
@@ -99,7 +100,10 @@ public final class MapActivity extends AppCompatActivity {
             mapView.getMapAsync(mapLibreMap -> {
                 try {
                     map = mapLibreMap;
-                    mapView.addOnDidFailLoadingMapListener(errorMessage -> status.setText(R.string.map_load_error));
+                    configurarGestos();
+                    mapView.addOnDidFailLoadingMapListener(this::mostrarErrorCargaMapa);
+                    mapView.addOnRenderErrorListener(
+                            () -> status.setText(R.string.map_render_error));
                     map.setStyle(new Style.Builder().fromUri(MAP_STYLE_URL), style -> {
                         styleLoaded = true;
                         renderizarMovimientos();
@@ -111,6 +115,20 @@ public final class MapActivity extends AppCompatActivity {
         } catch (RuntimeException | LinkageError error) {
             mostrarMapaNoDisponible();
         }
+    }
+
+    private void configurarGestos() {
+        map.getUiSettings().setScrollGesturesEnabled(true);
+        map.getUiSettings().setZoomGesturesEnabled(true);
+        map.getUiSettings().setDoubleTapGesturesEnabled(true);
+        map.getUiSettings().setQuickZoomGesturesEnabled(true);
+        map.getUiSettings().setRotateGesturesEnabled(true);
+    }
+
+    private void mostrarErrorCargaMapa(String error) {
+        styleLoaded = false;
+        downloadOfflineButton.setEnabled(false);
+        status.setText(getString(R.string.map_load_error_detail, error));
     }
 
     private void mostrarMapaNoDisponible() {

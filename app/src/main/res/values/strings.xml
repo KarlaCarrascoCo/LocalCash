@@ -196,7 +196,7 @@
     <string name="action_lock_now">Bloquear ahora</string>
     <string name="map_title">Mapa de movimientos</string>
     <string name="map_loading">Cargando el mapa…</string>
-    <string name="map_online_ready">Mapa listo. Selecciona un marcador para ver su detalle.</string>
+    <string name="map_online_ready">Mapa de calles listo. Usa los gestos para acercar, alejar y desplazarte.</string>
     <string name="map_offline_description">Sin conexión: se mostrarán las regiones que hayas descargado.</string>
     <string name="map_empty">No hay movimientos con ubicación guardada.</string>
     <string name="action_download_offline_map">Descargar región para uso sin conexión</string>
@@ -211,6 +211,8 @@
     <string name="map_download_complete">Región descargada y disponible sin conexión.</string>
     <string name="map_offline_available">Hay una región descargada para consulta sin conexión.</string>
     <string name="map_load_error">No se pudo cargar el mapa. Comprueba tu conexión o descarga una región para uso sin conexión.</string>
+    <string name="map_load_error_detail">No se pudo cargar la cartografía: %1$s</string>
+    <string name="map_render_error">No se pudo dibujar la cartografía. Comprueba la conexión e inténtalo nuevamente.</string>
     <string name="map_unavailable">El mapa no está disponible en este dispositivo. Tus movimientos permanecen guardados localmente.</string>
     <string name="map_download_error">No se pudo descargar la región: %1$s</string>
     <string name="map_tile_limit_error">La descarga alcanzó el límite de recursos del mapa.</string>
