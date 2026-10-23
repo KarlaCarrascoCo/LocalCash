@@ -26,7 +26,6 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.localcash.app.data.CuentaRepository;
 import com.localcash.app.data.DatabaseBackupManager;
@@ -178,19 +177,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void configurarNavegacion() {
-        BottomNavigationView navigation = findViewById(R.id.bottom_navigation);
-        navigation.setOnItemSelectedListener(item -> {
-            if (item.getItemId() == R.id.navigation_home) {
-                homeScroll.smoothScrollTo(0, 0);
-            } else if (item.getItemId() == R.id.navigation_movements) {
-                abrirModulo(HistorialActivity.class);
-            } else if (item.getItemId() == R.id.navigation_shopping) {
-                abrirModulo(ComprasActivity.class);
-            } else if (item.getItemId() == R.id.navigation_more) {
-                abrirModulo(MasActivity.class);
-            }
-            return true;
-        });
+        findViewById(R.id.button_navigation_home).setOnClickListener(view -> homeScroll.smoothScrollTo(0, 0));
+        findViewById(R.id.button_navigation_history).setOnClickListener(view -> abrirModulo(HistorialActivity.class));
+        findViewById(R.id.button_navigation_shopping).setOnClickListener(view -> abrirModulo(ComprasActivity.class));
+        findViewById(R.id.button_navigation_more).setOnClickListener(view -> abrirModulo(MasActivity.class));
     }
 
     private void abrirModulo(Class<?> activityClass) {

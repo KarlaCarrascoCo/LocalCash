@@ -17,11 +17,11 @@
         android:paddingStart="20dp"
         android:paddingEnd="20dp"
         android:paddingTop="16dp"
-        android:paddingBottom="112dp"
-        app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
+        android:paddingBottom="32dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/top_navigation">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -565,19 +565,75 @@
         </LinearLayout>
     </ScrollView>
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation"
+    <LinearLayout
+        android:id="@+id/top_navigation"
         android:layout_width="0dp"
-        android:layout_height="76dp"
+        android:layout_height="64dp"
         android:background="@color/lc_surface"
-        app:elevation="10dp"
-        app:itemActiveIndicatorStyle="@style/Widget.Material3.BottomNavigationView.ActiveIndicator"
-        app:itemIconTint="@color/navigation_item_tint"
-        app:itemTextColor="@color/navigation_item_tint"
-        app:labelVisibilityMode="labeled"
-        app:menu="@menu/menu_bottom_navigation"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp"
+        android:elevation="4dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_navigation_home"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:text="@string/nav_home"
+            android:textAllCaps="false"
+            android:textSize="11sp"
+            app:icon="@drawable/ic_home"
+            app:iconGravity="textTop"
+            app:iconPadding="2dp"
+            app:iconTint="@color/lc_green_dark" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_navigation_history"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:text="@string/nav_movements"
+            android:textAllCaps="false"
+            android:textSize="11sp"
+            app:icon="@drawable/ic_movements"
+            app:iconGravity="textTop"
+            app:iconPadding="2dp"
+            app:iconTint="@color/lc_green_dark" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_navigation_shopping"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:text="@string/nav_shopping"
+            android:textAllCaps="false"
+            android:textSize="11sp"
+            app:icon="@drawable/ic_cart"
+            app:iconGravity="textTop"
+            app:iconPadding="2dp"
+            app:iconTint="@color/lc_green_dark" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_navigation_more"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:text="@string/nav_more"
+            android:textAllCaps="false"
+            android:textSize="11sp"
+            app:icon="@drawable/ic_more"
+            app:iconGravity="textTop"
+            app:iconPadding="2dp"
+            app:iconTint="@color/lc_green_dark" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
