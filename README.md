@@ -8,7 +8,7 @@ Aplicación financiera Android nativa desarrollada con **Java** y **XML**. El pa
 - Cuentas múltiples, ingresos y gastos, categorías, fechas, montos enteros en pesos chilenos, medios de cobro o pago, filtros, saldos e historial.
 - Coordenadas opcionales por movimiento, sin exigir permiso de ubicación para consultar el mapa.
 - Compras planificadas, contactos locales, gastos compartidos y deudas por participante.
-- Migraciones SQLite v1 a v5, claves foráneas y respaldo con SHA-256 antes de una migración protegida.
+- Migraciones SQLite v1 a v6, claves foráneas y respaldo con SHA-256 antes de una migración protegida.
 
 ## Mapa de movimientos
 
@@ -58,7 +58,7 @@ No ejecutar esa tarea en un emulador con datos de LocalCash. No usar `pm clear`,
 - El repositorio Git está preparado de forma local. Para publicar en GitHub se debe crear o configurar un remoto autorizado y ejecutar el `push` desde la cuenta del proyecto.
 ## Estructura SQLite
 
-`DatabaseHelper` administra la versión 5 de `localcash.db`. Sus tablas principales son `cuentas`, `movimientos`, `compras`, `contactos`, `gastos_compartidos` y sus relaciones de participantes o deudas. Los saldos se obtienen desde los movimientos asociados, por lo que no existe un saldo financiero duplicado como fuente de verdad. Las migraciones v1→v5 usan transacciones, claves foráneas y controles de integridad.
+`DatabaseHelper` administra la versión 6 de `localcash.db`. Sus tablas principales son `cuentas`, `movimientos`, `compras`, `contactos`, `gastos_compartidos` y sus relaciones de participantes o deudas. Los saldos se obtienen desde los movimientos asociados, por lo que no existe un saldo financiero duplicado como fuente de verdad. Las migraciones v1→v6 usan transacciones, claves foráneas y controles de integridad.
 
 ## Resultado de la última verificación
 

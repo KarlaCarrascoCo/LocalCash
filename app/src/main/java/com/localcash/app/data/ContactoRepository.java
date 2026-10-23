@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.DatabaseUtils;
 
 import com.localcash.app.model.Contacto;
 
@@ -29,5 +30,35 @@ public final class ContactoRepository {
             while (cursor.moveToNext()) contactos.add(new Contacto(cursor.getLong(0), cursor.getString(1), cursor.getString(2)));
         }
         return contactos;
+    }
+
+    public boolean actualizar(Contacto contacto) {
+        if (contacto == null || contacto.getId() <= 0 || contacto.getNombre() == null
+                || contacto.getNombre().trim().isEmpty()) {
+            throw new IllegalArgumentException("Contacto inválido.");
+        }
+        ContentValues values = new ContentValues();
+        values.put("nombre", contacto.getNombre().trim());
+        values.put("telefono", contacto.getTelefono() == null ? "" : contacto.getTelefono().trim());
+        return helper.getWritableDatabase().update(DatabaseHelper.TABLE_CONTACTOS, values,
+                DatabaseHelper.COLUMN_ID + " = ?", new String[]{String.valueOf(contacto.getId())}) > 0;
+    }
+
+    /** Impide eliminar contactos que todavía tengan deudas asociadas. */
+    public boolean eliminarSiNoTieneDeudas(long contactoId) {
+        SQLiteDatabase database = helper.getWritableDatabase();
+        database.beginTransaction();
+        try {
+            long deudas = DatabaseUtils.longForQuery(database,
+                    "SELECT COUNT(*) FROM " + DatabaseHelper.TABLE_GASTOS_COMPARTIDOS
+                            + " WHERE contacto_id = ?", new String[]{String.valueOf(contactoId)});
+            if (deudas > 0) return false;
+            boolean eliminado = database.delete(DatabaseHelper.TABLE_CONTACTOS,
+                    DatabaseHelper.COLUMN_ID + " = ?", new String[]{String.valueOf(contactoId)}) > 0;
+            database.setTransactionSuccessful();
+            return eliminado;
+        } finally {
+            database.endTransaction();
+        }
     }
 }

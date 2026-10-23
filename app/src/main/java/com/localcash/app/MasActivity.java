@@ -10,8 +10,7 @@ import com.localcash.app.security.AuthSession;
 public final class MasActivity extends AppCompatActivity {
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state); setContentView(R.layout.activity_mas);
-        findViewById(R.id.button_more_accounts).setOnClickListener(v -> startActivity(
-                new Intent(this, MainActivity.class).putExtra(MainActivity.EXTRA_OPEN_ACCOUNT_FORM, true)));
+        findViewById(R.id.button_more_accounts).setOnClickListener(v -> startActivity(new Intent(this, CuentasActivity.class)));
         findViewById(R.id.button_more_contacts).setOnClickListener(v -> startActivity(new Intent(this, ContactosActivity.class)));
         findViewById(R.id.button_more_shared).setOnClickListener(v -> startActivity(new Intent(this, GastosCompartidosActivity.class)));
         findViewById(R.id.button_more_map).setOnClickListener(v -> startActivity(new Intent(this, MapActivity.class)));

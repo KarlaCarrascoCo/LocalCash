@@ -103,23 +103,35 @@ public final class MovimientoRepository {
                 "m." + DatabaseHelper.COLUMN_FECHA + " DESC",
                 String.valueOf(limiteSeguro))) {
             while (cursor.moveToNext()) {
-                movimientos.add(new Movimiento(
-                        cursor.getLong(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_ID)),
-                        cursor.getLong(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_CUENTA_ID)),
-                        cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_TIPO)),
-                        cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_DESCRIPCION)),
-                        cursor.getLong(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_MONTO)),
-                        cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_CATEGORIA)),
-                        cursor.getLong(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_FECHA)),
-                        cursor.getString(cursor.getColumnIndexOrThrow("nombre_cuenta")),
-                        cursor.isNull(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_LATITUD)) ? null
-                                : cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_LATITUD)),
-                        cursor.isNull(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_LONGITUD)) ? null
-                                : cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_LONGITUD)),
-                        cursor.getString(cursor.getColumnIndexOrThrow(
-                                DatabaseHelper.COLUMN_DIRECCION_APROXIMADA)),
-                        cursor.getString(cursor.getColumnIndexOrThrow(
-                                DatabaseHelper.COLUMN_MEDIO_PAGO))));
+                movimientos.add(leerMovimiento(cursor));
+            }
+        }
+        return movimientos;
+    }
+
+    /** Devuelve todo el historial disponible, filtrable sin interpolar valores en SQL. */
+    public List<Movimiento> obtenerHistorial(long cuentaId, String tipo) {
+        List<String> condiciones = new ArrayList<>();
+        List<String> argumentos = new ArrayList<>();
+        if (cuentaId != Cuenta.ID_TODAS_LAS_CUENTAS) {
+            condiciones.add("m." + DatabaseHelper.COLUMN_CUENTA_ID + " = ?");
+            argumentos.add(String.valueOf(cuentaId));
+        }
+        if (Movimiento.TIPO_INGRESO.equals(tipo) || Movimiento.TIPO_GASTO.equals(tipo)) {
+            condiciones.add("m." + DatabaseHelper.COLUMN_TIPO + " = ?");
+            argumentos.add(tipo);
+        }
+        String selection = condiciones.isEmpty() ? null : android.text.TextUtils.join(" AND ", condiciones);
+        List<Movimiento> movimientos = new ArrayList<>();
+        try (Cursor cursor = databaseHelper.getReadableDatabase().query(
+                DatabaseHelper.TABLE_MOVIMIENTOS + " m INNER JOIN " + DatabaseHelper.TABLE_CUENTAS
+                        + " c ON m." + DatabaseHelper.COLUMN_CUENTA_ID + " = c."
+                        + DatabaseHelper.COLUMN_ID,
+                MOVIMIENTO_COLUMNS, selection,
+                argumentos.isEmpty() ? null : argumentos.toArray(new String[0]), null, null,
+                "m." + DatabaseHelper.COLUMN_FECHA + " DESC")) {
+            while (cursor.moveToNext()) {
+                movimientos.add(leerMovimiento(cursor));
             }
         }
         return movimientos;
@@ -165,5 +177,23 @@ public final class MovimientoRepository {
         } finally {
             database.endTransaction();
         }
+    }
+
+    private static Movimiento leerMovimiento(Cursor cursor) {
+        return new Movimiento(
+                cursor.getLong(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_ID)),
+                cursor.getLong(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_CUENTA_ID)),
+                cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_TIPO)),
+                cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_DESCRIPCION)),
+                cursor.getLong(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_MONTO)),
+                cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_CATEGORIA)),
+                cursor.getLong(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_FECHA)),
+                cursor.getString(cursor.getColumnIndexOrThrow("nombre_cuenta")),
+                cursor.isNull(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_LATITUD)) ? null
+                        : cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_LATITUD)),
+                cursor.isNull(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_LONGITUD)) ? null
+                        : cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_LONGITUD)),
+                cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_DIRECCION_APROXIMADA)),
+                cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_MEDIO_PAGO)));
     }
 }

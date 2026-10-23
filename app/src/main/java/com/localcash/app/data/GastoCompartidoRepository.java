@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 
 import com.localcash.app.model.GastoCompartido;
 import com.localcash.app.model.Contacto;
+import com.localcash.app.util.FinancialRules;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,8 +18,8 @@ public final class GastoCompartidoRepository {
     public GastoCompartidoRepository(Context context) { helper = new DatabaseHelper(context.getApplicationContext()); }
 
     public long crear(long contactoId, String descripcion, long montoTotal, int participantes) {
-        long deuda = montoTotal / participantes;
-        if (contactoId <= 0 || deuda <= 0 || participantes < 2) throw new IllegalArgumentException("Datos de división inválidos.");
+        long deuda = FinancialRules.deudaPorContacto(montoTotal, participantes);
+        if (contactoId <= 0) throw new IllegalArgumentException("Datos de división inválidos.");
         ContentValues values = new ContentValues(); values.put("contacto_id", contactoId);
         values.put(DatabaseHelper.COLUMN_DESCRIPCION, descripcion.trim()); values.put("monto_total", montoTotal);
         values.put("participantes", participantes); values.put("monto_deuda", deuda);
@@ -33,8 +34,7 @@ public final class GastoCompartidoRepository {
             throw new IllegalArgumentException("Datos de división inválidos.");
         }
         int participantes = contactos.size() + 1;
-        long deuda = montoTotal / participantes;
-        if (deuda <= 0) throw new IllegalArgumentException("Monto insuficiente para la división.");
+        long deuda = FinancialRules.deudaPorContacto(montoTotal, participantes);
         SQLiteDatabase database = helper.getWritableDatabase();
         database.beginTransaction();
         try {
@@ -56,13 +56,22 @@ public final class GastoCompartidoRepository {
 
     public List<GastoCompartido> obtenerTodos() {
         List<GastoCompartido> gastos = new ArrayList<>();
-        String sql = "SELECT g.id, c.nombre, g.descripcion, g.monto_total, g.participantes, g.monto_deuda "
+        String sql = "SELECT g.id, c.nombre, g.descripcion, g.monto_total, g.participantes, g.monto_deuda, g."
+                + DatabaseHelper.COLUMN_PAGADO + " "
                 + "FROM " + DatabaseHelper.TABLE_GASTOS_COMPARTIDOS + " g INNER JOIN "
                 + DatabaseHelper.TABLE_CONTACTOS + " c ON g.contacto_id = c.id ORDER BY g.fecha DESC";
         try (Cursor cursor = helper.getReadableDatabase().rawQuery(sql, null)) {
             while (cursor.moveToNext()) gastos.add(new GastoCompartido(cursor.getLong(0), cursor.getString(1),
-                    cursor.getString(2), cursor.getLong(3), cursor.getInt(4), cursor.getLong(5)));
+                    cursor.getString(2), cursor.getLong(3), cursor.getInt(4), cursor.getLong(5),
+                    cursor.getInt(6) == 1));
         }
         return gastos;
+    }
+
+    public boolean marcarPagado(long id, boolean pagado) {
+        ContentValues values = new ContentValues();
+        values.put(DatabaseHelper.COLUMN_PAGADO, pagado ? 1 : 0);
+        return helper.getWritableDatabase().update(DatabaseHelper.TABLE_GASTOS_COMPARTIDOS, values,
+                DatabaseHelper.COLUMN_ID + " = ?", new String[]{String.valueOf(id)}) > 0;
     }
 }

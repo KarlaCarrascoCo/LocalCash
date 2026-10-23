@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.localcash.app.model.Compra;
+import com.localcash.app.util.FinancialRules;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +21,7 @@ public final class CompraRepository {
     }
 
     public long agregar(String nombre, int cantidad, long precioEstimado) {
-        if (nombre == null || nombre.trim().isEmpty() || cantidad <= 0 || precioEstimado < 0) {
+        if (!FinancialRules.esCompraValida(nombre, cantidad, precioEstimado)) {
             throw new IllegalArgumentException("Datos de compra inválidos.");
         }
         ContentValues values = new ContentValues();
@@ -46,5 +47,24 @@ public final class CompraRepository {
         ContentValues values = new ContentValues(); values.put("completada", completada ? 1 : 0);
         helper.getWritableDatabase().update(DatabaseHelper.TABLE_COMPRAS, values,
                 DatabaseHelper.COLUMN_ID + " = ?", new String[]{String.valueOf(id)});
+    }
+
+    public boolean actualizar(Compra compra) {
+        if (compra == null || compra.getId() <= 0
+                || !FinancialRules.esCompraValida(compra.getNombre(), compra.getCantidad(), compra.getPrecioEstimado())) {
+            throw new IllegalArgumentException("Datos de compra inválidos.");
+        }
+        ContentValues values = new ContentValues();
+        values.put("nombre", compra.getNombre().trim());
+        values.put("cantidad", compra.getCantidad());
+        values.put(DatabaseHelper.COLUMN_PRECIO_ESTIMADO, compra.getPrecioEstimado());
+        values.put("completada", compra.isCompletada() ? 1 : 0);
+        return helper.getWritableDatabase().update(DatabaseHelper.TABLE_COMPRAS, values,
+                DatabaseHelper.COLUMN_ID + " = ?", new String[]{String.valueOf(compra.getId())}) > 0;
+    }
+
+    public boolean eliminar(long id) {
+        return helper.getWritableDatabase().delete(DatabaseHelper.TABLE_COMPRAS,
+                DatabaseHelper.COLUMN_ID + " = ?", new String[]{String.valueOf(id)}) > 0;
     }
 }

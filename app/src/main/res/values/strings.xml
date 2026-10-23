@@ -24,6 +24,11 @@
     <string name="movement_transport_amount">− $18.500</string>
     <string name="nav_home">Inicio</string>
     <string name="nav_movements">Historial</string>
+    <string name="history_title">Historial financiero</string>
+    <string name="history_subtitle">Consulta todos tus movimientos guardados localmente.</string>
+    <string name="history_type_label">Tipo de movimiento</string>
+    <string name="history_empty">No hay movimientos para estos filtros.</string>
+    <string name="history_item_format">%1$s\n%2$s · %3$s\n%4$s · %5$s%6$s</string>
     <string name="nav_shopping">Compras</string>
     <string name="nav_more">Más</string>
     <string name="content_description_income">Resumen de ingresos de ejemplo</string>
@@ -42,6 +47,7 @@
     <string name="form_account_label">Cuenta</string>
     <string name="form_account_hint">Selecciona una cuenta</string>
     <string name="form_account_title">Nueva cuenta</string>
+    <string name="form_account_edit_title">Editar cuenta</string>
     <string name="form_account_name_label">Nombre de la cuenta</string>
     <string name="form_account_name_hint">Ej.: Ahorros</string>
     <string name="form_account_type_label">Tipo de cuenta</string>
@@ -54,6 +60,14 @@
     <string name="account_filter_all">Todas las cuentas</string>
     <string name="quick_access_title">Accesos rápidos</string>
     <string name="quick_accounts">Cuentas</string>
+    <string name="accounts_title">Cuentas financieras</string>
+    <string name="accounts_subtitle">Crea, edita o elimina cuentas sin movimientos asociados.</string>
+    <string name="action_add_account">Crear cuenta</string>
+    <string name="action_edit">Editar</string>
+    <string name="account_item_format">%1$s\n%2$s</string>
+    <string name="delete_account_title">¿Eliminar cuenta?</string>
+    <string name="delete_account_message">Solo se eliminarán cuentas sin movimientos asociados.</string>
+    <string name="error_account_delete_protected">No se puede eliminar una cuenta con movimientos ni la única cuenta disponible.</string>
     <string name="quick_shopping">Compras</string>
     <string name="quick_contacts">Contactos</string>
     <string name="quick_shared">Gastos compartidos</string>
@@ -134,6 +148,9 @@
     <string name="shopping_item_format">%1$s · cantidad: %2$d · estimado: $%3$d</string>
     <string name="shopping_empty">Aún no hay compras planificadas.</string>
     <string name="shopping_history_title">Compras planificadas e historial</string>
+    <string name="shopping_edit_title">Editar compra</string>
+    <string name="delete_shopping_title">¿Eliminar compra?</string>
+    <string name="delete_shopping_message">Esta acción eliminará la compra planificada.</string>
     <string name="error_shopping_fields">Ingresa un producto y una cantidad válida.</string>
     <string name="contacts_title">Contactos locales</string>
     <string name="contact_name_hint">Nombre del contacto</string>
@@ -143,6 +160,10 @@
     <string name="contacts_empty">Aún no hay contactos locales.</string>
     <string name="contacts_subtitle">Guarda contactos para compras y gastos compartidos.</string>
     <string name="contacts_list_title">Contactos guardados</string>
+    <string name="contact_edit_title">Editar contacto</string>
+    <string name="delete_contact_title">¿Eliminar contacto?</string>
+    <string name="delete_contact_message">Solo se eliminará si no tiene deudas asociadas.</string>
+    <string name="error_contact_delete_protected">No se puede eliminar un contacto con deudas registradas.</string>
     <string name="error_contact_name">Ingresa el nombre del contacto.</string>
     <string name="shared_title">Gastos compartidos</string>
     <string name="shared_subtitle">Divide el total entre tú y los contactos seleccionados.</string>
@@ -155,6 +176,8 @@
     <string name="shared_item_format">%1$s debe %3$s por %2$s (%4$d participantes)</string>
     <string name="shared_empty">No hay deudas asignadas.</string>
     <string name="shared_debts_title">Deudas pendientes</string>
+    <string name="shared_status_pending">Pendiente</string>
+    <string name="shared_status_paid">Pagado</string>
     <string name="error_shared_fields">Selecciona contactos e ingresa una descripción y monto válidos.</string>
     <string name="more_title">Más herramientas</string>
     <string name="more_subtitle">Gestiona tus datos financieros y opciones de seguridad.</string>

@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string-array name="history_types">
+        <item>Todos los movimientos</item>
+        <item>Ingresos</item>
+        <item>Gastos</item>
+    </string-array>
     <string-array name="movement_categories">
         <item>Alimentación</item>
         <item>Transporte</item>

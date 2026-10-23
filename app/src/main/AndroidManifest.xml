@@ -28,6 +28,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".MapActivity" android:exported="false" />
+        <activity android:name=".HistorialActivity" android:exported="false" />
+        <activity android:name=".CuentasActivity" android:exported="false" />
         <activity android:name=".GastosCompartidosActivity" android:exported="false" />
         <activity android:name=".ContactosActivity" android:exported="false" />
         <activity android:name=".MasActivity" android:exported="false" />

@@ -25,3 +25,4 @@ localcash-backups/
 /maplibre-build.log
 /final-build.log
 /interface-build.log
+/pending-features-build.log

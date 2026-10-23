@@ -13,7 +13,7 @@ import com.localcash.app.model.Movimiento;
 public final class DatabaseHelper extends SQLiteOpenHelper {
 
     public static final String DATABASE_NAME = "localcash.db";
-    public static final int DATABASE_VERSION = 5;
+    public static final int DATABASE_VERSION = 6;
     public static final String TABLE_CUENTAS = "cuentas";
     public static final String TABLE_MOVIMIENTOS = "movimientos";
     public static final String TABLE_COMPRAS = "compras";
@@ -35,6 +35,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_DIRECCION_APROXIMADA = "direccion_aproximada";
     public static final String COLUMN_MEDIO_PAGO = "medio_pago";
     public static final String COLUMN_PRECIO_ESTIMADO = "precio_estimado";
+    public static final String COLUMN_PAGADO = "pagado";
 
     private static final String TABLE_MOVIMIENTOS_MIGRACION = "movimientos_v2";
     private static final String MOVEMENT_DATA_COLUMNS = COLUMN_ID + ", " + COLUMN_TIPO + ", "
@@ -122,6 +123,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
         }
         if (oldVersion < 5) {
             migrarVersion4AVersion5(database);
+        }
+        if (oldVersion < 6) {
+            migrarVersion5AVersion6(database);
         }
     }
 
@@ -243,6 +247,20 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
+    /** Conserva todas las deudas existentes como pendientes al añadir su estado explícito. */
+    private void migrarVersion5AVersion6(SQLiteDatabase database) {
+        database.beginTransaction();
+        try {
+            database.execSQL("ALTER TABLE " + TABLE_GASTOS_COMPARTIDOS + " ADD COLUMN "
+                    + COLUMN_PAGADO + " INTEGER NOT NULL DEFAULT 0 CHECK(" + COLUMN_PAGADO
+                    + " IN (0, 1))");
+            verificarClavesForaneas(database);
+            database.setTransactionSuccessful();
+        } finally {
+            database.endTransaction();
+        }
+    }
+
     /** Comprueba los campos heredados antes de eliminar la tabla de versión 1. */
     private static void verificarDatosMigrados(SQLiteDatabase database) {
         long ausentesEnMigracion = DatabaseUtils.longForQuery(database,
@@ -343,6 +361,7 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
                 + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, contacto_id INTEGER NOT NULL, "
                 + COLUMN_DESCRIPCION + " TEXT NOT NULL, monto_total INTEGER NOT NULL CHECK(monto_total > 0), "
                 + "participantes INTEGER NOT NULL CHECK(participantes > 1), monto_deuda INTEGER NOT NULL CHECK(monto_deuda > 0), "
+                + COLUMN_PAGADO + " INTEGER NOT NULL DEFAULT 0 CHECK(" + COLUMN_PAGADO + " IN (0, 1)), "
                 + COLUMN_FECHA + " INTEGER NOT NULL, FOREIGN KEY(contacto_id) REFERENCES "
                 + TABLE_CONTACTOS + "(" + COLUMN_ID + ") ON DELETE RESTRICT)");
         database.execSQL("CREATE INDEX IF NOT EXISTS idx_gastos_compartidos_contacto ON "

@@ -24,6 +24,7 @@ public final class CuentaFormDialog extends Dialog {
     }
 
     private final OnCuentaConfirmadaListener listener;
+    private final Cuenta cuentaOriginal;
     private TextInputLayout nameLayout;
     private TextInputLayout typeLayout;
     private TextInputEditText nameInput;
@@ -32,8 +33,14 @@ public final class CuentaFormDialog extends Dialog {
     private String selectedType;
 
     public CuentaFormDialog(@NonNull Context context, @NonNull OnCuentaConfirmadaListener listener) {
+        this(context, null, listener);
+    }
+
+    public CuentaFormDialog(@NonNull Context context, Cuenta cuentaOriginal,
+                            @NonNull OnCuentaConfirmadaListener listener) {
         super(context);
         this.listener = listener;
+        this.cuentaOriginal = cuentaOriginal;
     }
 
     @Override
@@ -48,6 +55,15 @@ public final class CuentaFormDialog extends Dialog {
         entityInput = findViewById(R.id.input_account_entity);
         typeInput = findViewById(R.id.input_account_type);
         configurarTipos();
+        if (cuentaOriginal != null) {
+            ((android.widget.TextView) findViewById(R.id.text_account_form_title))
+                    .setText(R.string.form_account_edit_title);
+            nameInput.setText(cuentaOriginal.getNombre());
+            entityInput.setText(cuentaOriginal.getEntidadFinanciera());
+            selectedType = cuentaOriginal.getTipo();
+            String[] tipos = getContext().getResources().getStringArray(R.array.account_types);
+            typeInput.setText(tipos[posicionDeTipo(selectedType)], false);
+        }
 
         findViewById(R.id.button_cancel_account).setOnClickListener(view -> dismiss());
         findViewById(R.id.button_save_account).setOnClickListener(view -> validarYConfirmar());
@@ -92,7 +108,8 @@ public final class CuentaFormDialog extends Dialog {
         }
         if (valido) {
             String entidad = entityInput.getText() == null ? "" : entityInput.getText().toString().trim();
-            listener.onCuentaConfirmada(new Cuenta(0, nombre, selectedType, entidad));
+            listener.onCuentaConfirmada(new Cuenta(cuentaOriginal == null ? 0 : cuentaOriginal.getId(),
+                    nombre, selectedType, entidad));
             dismiss();
         }
     }
@@ -114,5 +131,15 @@ public final class CuentaFormDialog extends Dialog {
             default:
                 return Cuenta.TIPO_OTRA;
         }
+    }
+
+    private int posicionDeTipo(String tipo) {
+        if (Cuenta.TIPO_EFECTIVO.equals(tipo)) return 0;
+        if (Cuenta.TIPO_CUENTA_CORRIENTE.equals(tipo)) return 1;
+        if (Cuenta.TIPO_CUENTA_VISTA.equals(tipo)) return 2;
+        if (Cuenta.TIPO_AHORROS.equals(tipo)) return 3;
+        if (Cuenta.TIPO_TARJETA_CREDITO.equals(tipo)) return 4;
+        if (Cuenta.TIPO_CUENTA_DIGITAL.equals(tipo)) return 5;
+        return 6;
     }
 }

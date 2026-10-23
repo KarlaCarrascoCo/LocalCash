@@ -65,6 +65,23 @@ public final class CuentaRepository {
         return cuentas;
     }
 
+    public boolean actualizar(Cuenta cuenta) {
+        if (cuenta == null || cuenta.getId() <= 0 || cuenta.getNombre() == null
+                || cuenta.getNombre().trim().isEmpty() || cuenta.getTipo() == null) {
+            throw new IllegalArgumentException("Cuenta inválida.");
+        }
+        ContentValues values = new ContentValues();
+        values.put(DatabaseHelper.COLUMN_CUENTA_NOMBRE, cuenta.getNombre().trim());
+        values.put(DatabaseHelper.COLUMN_CUENTA_TIPO, cuenta.getTipo());
+        if (cuenta.getEntidadFinanciera() == null || cuenta.getEntidadFinanciera().trim().isEmpty()) {
+            values.putNull(DatabaseHelper.COLUMN_CUENTA_ENTIDAD);
+        } else {
+            values.put(DatabaseHelper.COLUMN_CUENTA_ENTIDAD, cuenta.getEntidadFinanciera().trim());
+        }
+        return databaseHelper.getWritableDatabase().update(DatabaseHelper.TABLE_CUENTAS, values,
+                DatabaseHelper.COLUMN_ID + " = ?", new String[]{String.valueOf(cuenta.getId())}) > 0;
+    }
+
     /** Solo elimina cuentas sin movimientos y conserva siempre al menos una cuenta. */
     public boolean eliminarSiNoTieneMovimientos(long cuentaId) {
         SQLiteDatabase database = databaseHelper.getWritableDatabase();

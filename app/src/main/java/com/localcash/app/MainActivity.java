@@ -112,12 +112,12 @@ public class MainActivity extends AppCompatActivity {
 
         registerMovementButton.setOnClickListener(view -> abrirFormularioMovimiento());
         findViewById(R.id.button_settings).setOnClickListener(view -> abrirFormularioCuenta());
-        findViewById(R.id.button_quick_accounts).setOnClickListener(view -> abrirFormularioCuenta());
+        findViewById(R.id.button_quick_accounts).setOnClickListener(view -> abrirModulo(CuentasActivity.class));
         findViewById(R.id.button_quick_shopping).setOnClickListener(view -> abrirModulo(ComprasActivity.class));
         findViewById(R.id.button_quick_contacts).setOnClickListener(view -> abrirModulo(ContactosActivity.class));
         findViewById(R.id.button_quick_shared).setOnClickListener(view -> abrirModulo(GastosCompartidosActivity.class));
         findViewById(R.id.button_quick_map).setOnClickListener(view -> abrirModulo(MapActivity.class));
-        findViewById(R.id.button_quick_history).setOnClickListener(view -> mostrarHistorial());
+        findViewById(R.id.button_quick_history).setOnClickListener(view -> abrirModulo(HistorialActivity.class));
         configurarNavegacion();
         inicializarPersistencia();
     }
@@ -191,7 +191,7 @@ public class MainActivity extends AppCompatActivity {
             if (item.getItemId() == R.id.navigation_home) {
                 homeScroll.smoothScrollTo(0, 0);
             } else if (item.getItemId() == R.id.navigation_movements) {
-                mostrarHistorial();
+                abrirModulo(HistorialActivity.class);
             } else if (item.getItemId() == R.id.navigation_shopping) {
                 abrirModulo(ComprasActivity.class);
             } else if (item.getItemId() == R.id.navigation_more) {
@@ -205,10 +205,6 @@ public class MainActivity extends AppCompatActivity {
         startActivity(new Intent(this, activityClass));
     }
 
-    private void mostrarHistorial() {
-        View historial = findViewById(R.id.section_recent_movements);
-        homeScroll.post(() -> homeScroll.smoothScrollTo(0, historial.getTop()));
-    }
 
     private void volverABienvenida() {
         startActivity(new Intent(this, WelcomeActivity.class)

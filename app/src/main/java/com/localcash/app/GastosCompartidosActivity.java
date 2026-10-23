@@ -2,6 +2,7 @@ package com.localcash.app;
 
 import android.os.Bundle;
 import android.widget.EditText;
+import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -107,11 +108,14 @@ public final class GastosCompartidosActivity extends AppCompatActivity {
         lista.removeAllViews();
         NumberFormat formato = NumberFormat.getCurrencyInstance(new Locale("es", "CL"));
         for (GastoCompartido gasto : gastos.obtenerTodos()) {
-            TextView item = new TextView(this);
+            CheckBox item = new CheckBox(this);
             item.setPadding(0, 16, 0, 16);
             item.setTextColor(getColor(R.color.lc_text_primary));
             item.setText(getString(R.string.shared_item_format, gasto.getContacto(),
-                    gasto.getDescripcion(), formato.format(gasto.getMontoDeuda()), gasto.getParticipantes()));
+                    gasto.getDescripcion(), formato.format(gasto.getMontoDeuda()), gasto.getParticipantes())
+                    + " · " + getString(gasto.isPagado() ? R.string.shared_status_paid : R.string.shared_status_pending));
+            item.setChecked(gasto.isPagado());
+            item.setOnCheckedChangeListener((button, pagado) -> gastos.marcarPagado(gasto.getId(), pagado));
             lista.addView(item);
         }
         if (lista.getChildCount() == 0) {

@@ -7,7 +7,8 @@
     android:orientation="vertical"
     android:padding="24dp">
 
-    <TextView
+        <TextView
+            android:id="@+id/text_account_form_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/form_account_title"
