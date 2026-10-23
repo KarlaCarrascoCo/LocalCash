@@ -150,11 +150,13 @@ public final class MapActivity extends AppCompatActivity {
         }
         LatLngBounds.Builder bounds = new LatLngBounds.Builder();
         int markers = 0;
+        LatLng uniquePosition = null;
         try {
             for (Movimiento movimiento : movimientosConUbicacion) {
                 if (!esCoordenadaValida(movimiento)) continue;
                 LatLng position = new LatLng(movimiento.getLatitud(), movimiento.getLongitud());
                 bounds.include(position);
+                uniquePosition = position;
                 map.addMarker(new MarkerOptions()
                         .position(position)
                         .title(movimiento.getDescripcion().isEmpty()
@@ -166,7 +168,13 @@ public final class MapActivity extends AppCompatActivity {
                 status.setText(R.string.map_empty);
                 return;
             }
-            map.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 96));
+            // MapLibre no permite construir LatLngBounds con un único punto. Ese caso
+            // ocurría al tener un solo movimiento geolocalizado y abortaba el proceso nativo.
+            if (markers == 1 && uniquePosition != null) {
+                map.moveCamera(CameraUpdateFactory.newLatLngZoom(uniquePosition, 15d));
+            } else {
+                map.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 96));
+            }
             markersRendered = true;
             status.setText(R.string.map_online_ready);
         } catch (RuntimeException | LinkageError error) {
