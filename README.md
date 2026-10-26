@@ -1,32 +1,43 @@
 # LocalCash
 
-Aplicación financiera Android nativa desarrollada con **Java** y **XML**. El package es `com.localcash.app`, el mínimo es API 26 y los datos financieros se almacenan localmente en SQLite. Las funciones financieras no requieren una cuenta ni una conexión a Internet.
+LocalCash es una aplicación financiera móvil nativa para Android. Está desarrollada en Java y XML, y guarda los datos en SQLite local para que las operaciones financieras funcionen sin conexión a Internet.
 
-## Funcionalidades incluidas
+## Tecnologías
 
-- Acceso inicial con `BiometricPrompt` y una sesión de autenticación antes de mostrar el panel financiero.
-- Cuentas múltiples, ingresos y gastos, categorías, fechas, montos enteros en pesos chilenos, medios de cobro o pago, filtros, saldos e historial.
-- Coordenadas opcionales por movimiento, sin exigir permiso de ubicación para consultar el mapa.
-- Compras planificadas, contactos locales, gastos compartidos y deudas por participante.
-- Migraciones SQLite v1 a v7, claves foráneas y respaldo con SHA-256 antes de una migración protegida.
+- Android Studio
+- Java 11 y XML
+- SQLite local (`localcash.db`, esquema v13)
+- AndroidX y Material Components
+- BiometricPrompt de Android
+- MapLibre Native Android 13.7.1
+- SDK mínimo: API 26
+
+## Funcionalidades
+
+- Acceso protegido mediante autenticación biométrica.
+- Cuentas financieras múltiples, ingresos, gastos, categorías, medios de pago, saldos e historial de movimientos.
+- Registro opcional de coordenadas y consulta visual de movimientos geolocalizados en el mapa.
+- Exportación explícita de movimientos geolocalizados a CSV.
+- Agenda local de contactos para compras y gastos compartidos.
+- Planificación de compras por lugar, productos, cantidades, precios, fechas y estados de compra.
+- Gastos compartidos con selección de participantes, división equitativa o personalizada y deudas por contacto.
+- Tema claro y oscuro persistente.
 
 ## Mapa de movimientos
 
-`MapActivity` usa [MapLibre Native Android](https://maplibre.org/maplibre-native/android/examples/getting-started/) 13.7.1 para mostrar en un mapa los movimientos que ya tienen latitud y longitud. Un marcador presenta descripción, tipo, monto, fecha y cuenta. Los movimientos sin coordenadas no se inventan ni aparecen en el mapa.
+`MapActivity` usa [MapLibre Native Android](https://maplibre.org/maplibre-native/android/) para mostrar los movimientos que tienen latitud y longitud. Los marcadores muestran descripción, tipo, monto, fecha y cuenta. Los movimientos sin coordenadas no se inventan ni aparecen en el mapa.
 
-El estilo de muestra se obtiene desde `https://demotiles.maplibre.org/style.json`. Por eso la vista de mapa en línea necesita conexión y los permisos `INTERNET` y `ACCESS_NETWORK_STATE`. El resto de la aplicación sigue disponible sin red.
-
-El botón **Descargar región sin conexión** inicia de forma explícita una descarga limitada alrededor de una ubicación guardada (zoom 10 a 14, ±0,015°). MapLibre conserva esos recursos en su almacenamiento de mapa. Si no hay red, no hay movimientos con coordenadas o el servidor del estilo falla, se informa el problema y los datos SQLite no se modifican. La descarga no se ejecuta automáticamente ni usa claves privadas. Su ejecución en un dispositivo real queda pendiente de validación manual.
-
-La API de regiones sin conexión utilizada es la oficial de [MapLibre](https://maplibre.org/maplibre-native/android/api/-map-libre%20-native%20-android/org.maplibre.android.offline/-offline-manager/create-offline-region.html).
+El estilo cartográfico se obtiene desde OpenFreeMap. La cartografía se carga o descarga únicamente cuando se abre el mapa o se solicita una región; las operaciones financieras siguen siendo locales y no requieren Internet.
 
 ## Arquitectura
 
 | Capa | Ubicación |
 |---|---|
-| Actividades y diálogos | `app/src/main/java/com/localcash/app` y `ui` |
+| Actividades y navegación | `app/src/main/java/com/localcash/app` |
+| Diálogos y componentes UI | `app/src/main/java/com/localcash/app/ui` |
 | Modelos | `app/src/main/java/com/localcash/app/model` |
 | SQLite, repositorios y respaldos | `app/src/main/java/com/localcash/app/data` |
+| Reglas de negocio | `app/src/main/java/com/localcash/app/util` |
 | Interfaces y recursos | `app/src/main/res` |
 | Pruebas unitarias | `app/src/test` |
 | Pruebas instrumentadas aisladas | `app/src/androidTest` |
@@ -56,10 +67,22 @@ No ejecutar esa tarea en un emulador con datos de LocalCash. No usar `pm clear`,
 - La disponibilidad de teselas, estilo y descarga offline depende del servicio público de demostración de MapLibre y de la conectividad del dispositivo.
 - La geocodificación y la ubicación son opcionales; un movimiento se guarda aun cuando no haya ubicación.
 - El repositorio Git está preparado de forma local. Para publicar en GitHub se debe crear o configurar un remoto autorizado y ejecutar el `push` desde la cuenta del proyecto.
-## Estructura SQLite
+## Persistencia local
 
-`DatabaseHelper` administra la versión 7 de `localcash.db`. Sus tablas principales son `cuentas`, `movimientos`, `compras`, `contactos`, `gastos_compartidos` y sus relaciones de participantes o deudas. Los saldos se obtienen desde los movimientos asociados, por lo que no existe un saldo financiero duplicado como fuente de verdad. Las migraciones v1→v7 usan transacciones, claves foráneas y controles de integridad.
+`DatabaseHelper` administra el esquema SQLite v13 y habilita claves foráneas. Las tablas principales son:
 
-## Resultado de la última verificación
+- `cuentas` y `movimientos`
+- `contactos`
+- `listas_compras`, `productos_compra` y `listas_contactos`
+- `gastos_compartidos`
+- `compras_compartidas`, `items_compartidos` y `asignaciones_compartidas`
 
-El 22 de octubre de 2026 se ejecutaron correctamente `testDebugUnitTest` (1 prueba, 0 fallos), `assembleDebug` y `assembleDebugAndroidTest`. No se ejecutó `connectedDebugAndroidTest` ni se instaló o abrió la aplicación durante esta verificación, para preservar los datos del emulador. La integración de MapLibre y su descarga offline compilaron, pero requieren validación manual en un AVD desechable antes de presentarlas como verificadas en ejecución.
+Los saldos financieros se calculan desde los movimientos registrados; no existe un saldo duplicado.
+
+## Validación
+
+La aplicación fue utilizada manualmente en un Xiaomi Redmi 10C con Android 13 para verificar autenticación, cuentas, movimientos, historial, compras, contactos, gastos compartidos y navegación principal. Las pruebas unitarias y la compilación se ejecutan desde Gradle; sus resultados se conservan como reportes locales de construcción.
+
+## Privacidad
+
+La información financiera se almacena en SQLite dentro del almacenamiento privado de la aplicación. El repositorio excluye bases de datos, respaldos, configuraciones locales, claves de firma y artefactos de compilación. El mapa usa recursos cartográficos externos solo cuando se solicita cartografía.

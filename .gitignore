@@ -13,7 +13,10 @@ local.properties
 *.db
 *.db-shm
 *.db-wal
+*.sqlite
+*.sqlite3
 localcash-backups/
+database_backups/
 
 # Evidencia local de diagnóstico: puede contener Logcat y copias privadas de SQLite.
 /diagnostics/
@@ -21,6 +24,13 @@ localcash-backups/
 # Material de firma local.
 *.jks
 *.keystore
+*.pem
+*.key
+
+# Artefactos de distribución y archivos temporales locales.
+*.apk
+*.aab
+*.tmp
 
 /maplibre-build.log
 /final-build.log
