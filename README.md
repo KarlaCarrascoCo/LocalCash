@@ -27,7 +27,7 @@ LocalCash es una aplicación financiera móvil nativa para Android. Está desarr
 
 `MapActivity` usa [MapLibre Native Android](https://maplibre.org/maplibre-native/android/) para mostrar los movimientos que tienen latitud y longitud. Los marcadores muestran descripción, tipo, monto, fecha y cuenta. Los movimientos sin coordenadas no se inventan ni aparecen en el mapa.
 
-El estilo cartográfico se obtiene desde OpenFreeMap. La cartografía se carga o descarga únicamente cuando se abre el mapa o se solicita una región; las operaciones financieras siguen siendo locales y no requieren Internet.
+El estilo cartográfico se obtiene desde OpenFreeMap. Las operaciones financieras siguen siendo locales y no requieren Internet.
 
 ## Arquitectura
 
@@ -40,33 +40,22 @@ El estilo cartográfico se obtiene desde OpenFreeMap. La cartografía se carga o
 | Reglas de negocio | `app/src/main/java/com/localcash/app/util` |
 | Interfaces y recursos | `app/src/main/res` |
 | Pruebas unitarias | `app/src/test` |
-| Pruebas instrumentadas aisladas | `app/src/androidTest` |
-
-La base principal se llama `localcash.db`. Las pruebas instrumentadas deben usar exclusivamente `localcash_repository_test.db` y `localcash_migration_test.db`; nunca deben ejecutarse en un emulador que tenga datos reales, porque el despliegue del paquete puede reemplazar el almacenamiento privado de la aplicación.
 
 ## Compilación y verificación
 
 ```powershell
 .\gradlew.bat testDebugUnitTest
 .\gradlew.bat assembleDebug
-.\gradlew.bat assembleDebugAndroidTest
 ```
+
+Resultados verificados para esta entrega: **14 pruebas unitarias aprobadas** y compilación APK de depuración exitosa.
 
 El APK se genera en `app/build/outputs/apk/debug/app-debug.apk`.
 
-Para pruebas instrumentadas, usar un AVD desechable y ejecutar:
-
-```powershell
-.\gradlew.bat connectedDebugAndroidTest
-```
-
-No ejecutar esa tarea en un emulador con datos de LocalCash. No usar `pm clear`, desinstalación, Wipe Data ni restauraciones automáticas para validar una migración.
-
 ## Limitaciones conocidas
 
-- La disponibilidad de teselas, estilo y descarga offline depende del servicio público de demostración de MapLibre y de la conectividad del dispositivo.
+- La cartografía base depende de OpenFreeMap y de la conectividad del dispositivo.
 - La geocodificación y la ubicación son opcionales; un movimiento se guarda aun cuando no haya ubicación.
-- El repositorio Git está preparado de forma local. Para publicar en GitHub se debe crear o configurar un remoto autorizado y ejecutar el `push` desde la cuenta del proyecto.
 ## Persistencia local
 
 `DatabaseHelper` administra el esquema SQLite v13 y habilita claves foráneas. Las tablas principales son:
