@@ -8,13 +8,18 @@
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
         <TextView style="@style/TextAppearance.Material3.HeadlineMedium" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/contacts_title" android:textColor="@color/lc_green_dark" />
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="@string/contacts_subtitle" android:textColor="@color/lc_text_secondary" />
-        <com.google.android.material.textfield.TextInputLayout style="@style/Widget.Material3.TextInputLayout.OutlinedBox" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="20dp" android:hint="@string/contact_name_hint">
-            <com.google.android.material.textfield.TextInputEditText android:id="@+id/input_contact_name" android:layout_width="match_parent" android:layout_height="56dp" android:inputType="textCapWords" />
-        </com.google.android.material.textfield.TextInputLayout>
-        <com.google.android.material.textfield.TextInputLayout style="@style/Widget.Material3.TextInputLayout.OutlinedBox" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:hint="@string/contact_phone_hint">
-            <com.google.android.material.textfield.TextInputEditText android:id="@+id/input_contact_phone" android:layout_width="match_parent" android:layout_height="56dp" android:inputType="phone" />
-        </com.google.android.material.textfield.TextInputLayout>
-        <com.google.android.material.button.MaterialButton android:id="@+id/button_add_contact" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="16dp" android:text="@string/action_add_contact" app:backgroundTint="@color/lc_orange_earth" />
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="20dp" app:cardBackgroundColor="@color/lc_surface" app:cardCornerRadius="16dp" app:cardElevation="0dp" app:strokeColor="@color/lc_sage_outline" app:strokeWidth="1dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/contact_new_title" android:textColor="@color/lc_text_primary" android:textSize="15sp" android:textStyle="bold" />
+                <com.google.android.material.textfield.TextInputLayout style="@style/Widget.Material3.TextInputLayout.OutlinedBox" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:hint="@string/contact_name_hint">
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/input_contact_name" android:layout_width="match_parent" android:layout_height="56dp" android:inputType="textCapWords" />
+                </com.google.android.material.textfield.TextInputLayout>
+                <com.google.android.material.textfield.TextInputLayout style="@style/Widget.Material3.TextInputLayout.OutlinedBox" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:hint="@string/contact_phone_hint">
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/input_contact_phone" android:layout_width="match_parent" android:layout_height="56dp" android:inputType="phone" />
+                </com.google.android.material.textfield.TextInputLayout>
+                <com.google.android.material.button.MaterialButton android:id="@+id/button_add_contact" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="14dp" android:text="@string/action_add_contact" android:textColor="@color/white" app:backgroundTint="@color/lc_account_create" app:cornerRadius="16dp" app:icon="@drawable/ic_add" app:iconGravity="textStart" app:iconPadding="8dp" app:iconTint="@color/white" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:text="@string/contacts_list_title" android:textColor="@color/lc_text_primary" android:textSize="18sp" android:textStyle="bold" />
         <LinearLayout android:id="@+id/list_contacts" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:orientation="vertical" />
     </LinearLayout>

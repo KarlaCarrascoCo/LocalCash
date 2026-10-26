@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/lc_warm_background">
+
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:padding="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_back_shopping_detail"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:text="@string/action_back"
+                android:textColor="@color/lc_green_dark"
+                app:icon="@drawable/ic_chevron_right"
+                app:iconGravity="textStart"
+                app:iconTint="@color/lc_green_dark" />
+
+            <TextView
+                android:id="@+id/text_list_place"
+                style="@style/TextAppearance.Material3.HeadlineMedium"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/lc_text_primary" />
+
+            <TextView
+                android:id="@+id/text_list_schedule"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="@color/lc_text_secondary" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_modify_date"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:text="@string/action_modify_date"
+                android:textColor="@color/lc_green_dark" />
+
+            <TextView
+                android:id="@+id/text_list_contacts"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textColor="@color/lc_text_secondary" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardBackgroundColor="@color/lc_surface"
+                app:cardCornerRadius="18dp"
+                app:strokeColor="@color/lc_outline"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+                    <TextView android:id="@+id/text_list_progress" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/lc_text_primary" android:textStyle="bold" />
+                    <TextView android:id="@+id/text_list_totals" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="5dp" android:textColor="@color/lc_green_dark" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_start_list"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="14dp"
+                android:text="@string/action_start_purchase"
+                app:backgroundTint="@color/lc_green_medium"
+                app:cornerRadius="18dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_add_product"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="14dp"
+                android:text="@string/action_add_product"
+                app:backgroundTint="@color/lc_orange_earth"
+                app:cornerRadius="18dp"
+                app:icon="@drawable/ic_add"
+                app:iconGravity="textStart"
+                app:iconTint="@color/white" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_edit_completed_list"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="9dp"
+                android:text="@string/action_edit_purchase"
+                android:textColor="@color/lc_green_dark"
+                app:cornerRadius="18dp"
+                app:strokeColor="@color/lc_green_medium" />
+
+            <TextView
+                android:id="@+id/text_history_editing_notice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@string/shopping_history_editing_notice"
+                android:textColor="@color/lc_orange_earth"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_finish_history_edit"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="9dp"
+                android:text="@string/action_finish_editing"
+                android:textColor="@color/lc_green_dark"
+                android:visibility="gone"
+                app:cornerRadius="18dp"
+                app:strokeColor="@color/lc_green_medium" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_complete_list"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="9dp"
+                android:text="@string/action_complete_list"
+                android:textColor="@color/lc_green_dark"
+                app:cornerRadius="18dp"
+                app:strokeColor="@color/lc_green_medium" />
+
+            <LinearLayout
+                android:id="@+id/list_products"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:orientation="vertical" />
+        </LinearLayout>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

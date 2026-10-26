@@ -16,10 +16,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -35,6 +35,8 @@ import com.localcash.app.model.ResumenFinanciero;
 import com.localcash.app.ui.CuentaFormDialog;
 import com.localcash.app.ui.MovimientoFormDialog;
 import com.localcash.app.security.AuthSession;
+import com.localcash.app.security.ProtectedActivity;
+import com.localcash.app.settings.ThemePreferences;
 
 import java.io.IOException;
 import java.io.File;
@@ -46,7 +48,7 @@ import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends ProtectedActivity {
 
     public static final String EXTRA_OPEN_ACCOUNT_FORM = "open_account_form";
     private static final String TAG = "LocalCash";
@@ -69,8 +71,10 @@ public class MainActivity extends AppCompatActivity {
     private MaterialButton filterIncomeButton;
     private MaterialButton filterExpenseButton;
     private MaterialButton registerMovementButton;
+    private MaterialButton themeToggleButton;
     private ScrollView homeScroll;
     private ActivityResultLauncher<String[]> locationPermissionLauncher;
+    private ActivityResultLauncher<Intent> locationPickerLauncher;
     private MovimientoFormDialog movimientoFormDialog;
     private List<Cuenta> cuentas = new ArrayList<>();
     private String selectedMovementType;
@@ -79,8 +83,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (!AuthSession.isAuthenticated()) {
-            volverABienvenida();
+        if (!requireAuthenticatedSession()) {
             return;
         }
         openAccountFormOnReady = getIntent().getBooleanExtra(EXTRA_OPEN_ACCOUNT_FORM, false);
@@ -92,6 +95,8 @@ public class MainActivity extends AppCompatActivity {
                         movimientoFormDialog.onResultadoPermisoUbicacion(concedido);
                     }
                 });
+        locationPickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(), this::recibirUbicacionManual);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (view, insets) -> {
@@ -108,11 +113,17 @@ public class MainActivity extends AppCompatActivity {
         filterIncomeButton = findViewById(R.id.button_filter_income);
         filterExpenseButton = findViewById(R.id.button_filter_expense);
         registerMovementButton = findViewById(R.id.button_register_movement);
+        themeToggleButton = findViewById(R.id.button_theme_toggle);
         homeScroll = findViewById(R.id.home_scroll);
         registerMovementButton.setEnabled(false);
 
         registerMovementButton.setOnClickListener(view -> abrirFormularioMovimiento());
-        findViewById(R.id.button_settings).setOnClickListener(view -> abrirFormularioCuenta());
+        actualizarBotonTema(ThemePreferences.isDarkMode(this));
+        themeToggleButton.setOnClickListener(view -> {
+            boolean nuevoModoOscuro = !ThemePreferences.isDarkMode(this);
+            actualizarBotonTema(nuevoModoOscuro);
+            ThemePreferences.setDarkMode(this, nuevoModoOscuro);
+        });
         findViewById(R.id.button_quick_accounts).setOnClickListener(view -> abrirModulo(CuentasActivity.class));
         findViewById(R.id.button_quick_shopping).setOnClickListener(view -> abrirModulo(ComprasActivity.class));
         findViewById(R.id.button_quick_contacts).setOnClickListener(view -> abrirModulo(ContactosActivity.class));
@@ -124,11 +135,18 @@ public class MainActivity extends AppCompatActivity {
         inicializarPersistencia();
     }
 
+    private void actualizarBotonTema(boolean modoOscuro) {
+        themeToggleButton.setText(modoOscuro
+                ? R.string.theme_button_dark : R.string.theme_button_light);
+        themeToggleButton.setIconResource(modoOscuro ? R.drawable.ic_moon : R.drawable.ic_sun);
+        themeToggleButton.setContentDescription(getString(modoOscuro
+                ? R.string.content_description_moon : R.string.content_description_sun));
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
-        if (!AuthSession.isAuthenticated()) {
-            volverABienvenida();
+        if (!requireAuthenticatedSession()) {
             return;
         }
         if (movimientoRepository != null) {
@@ -190,12 +208,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private void volverABienvenida() {
-        startActivity(new Intent(this, WelcomeActivity.class)
-                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP));
-        finish();
-    }
-
     private void abrirFormularioMovimiento() {
         if (movimientoRepository == null || cuentas.isEmpty()) {
             return;
@@ -205,7 +217,8 @@ public class MainActivity extends AppCompatActivity {
                 new ArrayList<>(cuentas),
                 this::guardarMovimiento,
                 this::abrirFormularioCuentaDesdeMovimiento,
-                this::solicitarPermisoUbicacion);
+                this::solicitarPermisoUbicacion,
+                this::abrirSelectorUbicacion);
         dialog.setOnDismissListener(ignored -> {
             if (movimientoFormDialog == dialog) {
                 movimientoFormDialog = null;
@@ -232,6 +245,31 @@ public class MainActivity extends AppCompatActivity {
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION
         });
+    }
+
+    /** Mantiene abierto el formulario: la actividad de mapa solo devuelve coordenadas confirmadas. */
+    private void abrirSelectorUbicacion(Double latitud, Double longitud) {
+        Intent intent = new Intent(this, LocationPickerActivity.class);
+        if (latitud != null && longitud != null) {
+            intent.putExtra(LocationPickerActivity.EXTRA_LATITUDE, latitud);
+            intent.putExtra(LocationPickerActivity.EXTRA_LONGITUDE, longitud);
+        }
+        locationPickerLauncher.launch(intent);
+    }
+
+    private void recibirUbicacionManual(ActivityResult resultado) {
+        if (resultado.getResultCode() != RESULT_OK || resultado.getData() == null
+                || movimientoFormDialog == null) {
+            return;
+        }
+        Intent data = resultado.getData();
+        if (!data.hasExtra(LocationPickerActivity.EXTRA_LATITUDE)
+                || !data.hasExtra(LocationPickerActivity.EXTRA_LONGITUDE)) {
+            return;
+        }
+        movimientoFormDialog.onUbicacionManualSeleccionada(
+                data.getDoubleExtra(LocationPickerActivity.EXTRA_LATITUDE, 0d),
+                data.getDoubleExtra(LocationPickerActivity.EXTRA_LONGITUDE, 0d));
     }
 
     private void guardarMovimiento(Movimiento movimiento) {

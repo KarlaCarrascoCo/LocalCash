@@ -23,4 +23,29 @@ public final class FinancialRules {
     public static boolean esCompraValida(String nombre, int cantidad, long precioEstimado) {
         return nombre != null && !nombre.trim().isEmpty() && cantidad > 0 && precioEstimado >= 0;
     }
+
+    public static boolean esProductoCompraValido(String nombre, double cantidad, String unidad,
+                                                  String unidadPersonalizada, long precioEstimado,
+                                                  Long precioReal) {
+        if (nombre == null || nombre.trim().isEmpty() || cantidad <= 0 || unidad == null
+                || unidad.trim().isEmpty() || precioEstimado < 0
+                || (precioReal != null && precioReal < 0)) {
+            return false;
+        }
+        return !"OTRA".equals(unidad) || (unidadPersonalizada != null
+                && !unidadPersonalizada.trim().isEmpty());
+    }
+
+    public static long totalProducto(double cantidad, long precioUnitario) {
+        if (cantidad <= 0 || precioUnitario < 0) {
+            throw new IllegalArgumentException("Cantidad o precio inválido.");
+        }
+        return Math.round(cantidad * precioUnitario);
+    }
+
+    /** Una lista solo puede cerrarse cuando contiene al menos un producto adquirido. */
+    public static boolean puedeFinalizarCompra(int productosTotales, int productosAdquiridos) {
+        return productosTotales > 0 && productosAdquiridos > 0
+                && productosAdquiridos <= productosTotales;
+    }
 }

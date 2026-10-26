@@ -1,7 +1,15 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.LocalCash" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+        <item name="colorPrimary">@color/lc_green_dark</item>
+        <item name="colorOnPrimary">@color/lc_on_primary</item>
+        <item name="colorSecondary">@color/lc_orange_earth</item>
+        <item name="colorSurface">@color/lc_surface</item>
+        <item name="colorOnSurface">@color/lc_text_primary</item>
+        <item name="colorSurfaceVariant">@color/lc_warm_background</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:statusBarColor">@color/lc_warm_background</item>
+        <item name="android:navigationBarColor">@color/lc_surface</item>
     </style>
 </resources>

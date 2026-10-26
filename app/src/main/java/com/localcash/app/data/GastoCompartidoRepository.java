@@ -8,8 +8,10 @@ import android.database.sqlite.SQLiteDatabase;
 import com.localcash.app.model.GastoCompartido;
 import com.localcash.app.model.Contacto;
 import com.localcash.app.util.FinancialRules;
+import com.localcash.app.util.SharedExpenseRules;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.List;
 
@@ -30,12 +32,14 @@ public final class GastoCompartidoRepository {
 
     /** Registra una deuda por cada contacto; el redondeo restante corresponde al pagador. */
     public void crearParaContactos(List<Contacto> contactos, String descripcion, long montoTotal) {
-        if (contactos == null || contactos.isEmpty() || descripcion == null
-                || descripcion.trim().isEmpty() || montoTotal <= 0) {
-            throw new IllegalArgumentException("Datos de división inválidos.");
-        }
+        crearParaContactos(contactos, descripcion, montoTotal, null, 0L);
+    }
+
+    /** Crea deudas simples, con reparto equitativo o personalizado ya validado. */
+    public void crearParaContactos(List<Contacto> contactos, String descripcion, long montoTotal,
+                                   Map<Long, Long> asignaciones, long montoUsuario) {
+        Map<Long, Long> deudas = resolverDeudas(contactos, descripcion, montoTotal, asignaciones, montoUsuario);
         int participantes = contactos.size() + 1;
-        long deuda = FinancialRules.deudaPorContacto(montoTotal, participantes);
         SQLiteDatabase database = helper.getWritableDatabase();
         database.beginTransaction();
         try {
@@ -45,7 +49,7 @@ public final class GastoCompartidoRepository {
                 values.put(DatabaseHelper.COLUMN_DESCRIPCION, descripcion.trim());
                 values.put("monto_total", montoTotal);
                 values.put("participantes", participantes);
-                values.put("monto_deuda", deuda);
+                values.put("monto_deuda", deudas.get(contacto.getId()));
                 values.put(DatabaseHelper.COLUMN_FECHA, System.currentTimeMillis());
                 database.insertOrThrow(DatabaseHelper.TABLE_GASTOS_COMPARTIDOS, null, values);
             }
@@ -110,10 +114,15 @@ public final class GastoCompartidoRepository {
     /** Registra una compra grupal con productos y montos asignados de forma equitativa o personalizada. */
     public void crearCompraDetallada(List<Contacto> contactos, String descripcion, long montoTotal,
                                      List<String> lineasDetalle, Map<Long, Long> asignaciones) {
-        if (contactos == null || contactos.isEmpty() || descripcion == null || descripcion.trim().isEmpty()
-                || montoTotal <= 0 || lineasDetalle == null || lineasDetalle.isEmpty()) {
-            throw new IllegalArgumentException("Compra compartida inválida.");
-        }
+        long montoUsuario = montoUsuarioCompatible(contactos, montoTotal, asignaciones);
+        crearCompraDetallada(contactos, descripcion, montoTotal, lineasDetalle, asignaciones, montoUsuario);
+    }
+
+    public void crearCompraDetallada(List<Contacto> contactos, String descripcion, long montoTotal,
+                                     List<String> lineasDetalle, Map<Long, Long> asignaciones,
+                                     long montoUsuario) {
+        if (lineasDetalle == null || lineasDetalle.isEmpty()) throw new IllegalArgumentException("Compra compartida inválida.");
+        Map<Long, Long> deudas = resolverDeudas(contactos, descripcion, montoTotal, asignaciones, montoUsuario);
         SQLiteDatabase database = helper.getWritableDatabase(); database.beginTransaction();
         try {
             ContentValues compra = new ContentValues(); compra.put(DatabaseHelper.COLUMN_DESCRIPCION, descripcion.trim());
@@ -131,19 +140,44 @@ public final class GastoCompartidoRepository {
                 database.insertOrThrow(DatabaseHelper.TABLE_ITEMS_COMPARTIDOS, null, item);
             }
             if (totalItems != montoTotal) throw new IllegalArgumentException("El detalle no coincide con el total.");
-            long deudaEquitativa = FinancialRules.deudaPorContacto(montoTotal, contactos.size() + 1);
-            long totalAsignado = 0;
             for (Contacto contacto : contactos) {
-                long deuda = asignaciones == null || asignaciones.isEmpty() ? deudaEquitativa
-                        : asignaciones.containsKey(contacto.getId()) ? asignaciones.get(contacto.getId()) : 0;
-                if (deuda <= 0) throw new IllegalArgumentException("Asignación inválida.");
-                totalAsignado += deuda;
                 ContentValues asignacion = new ContentValues(); asignacion.put("compra_id", compraId);
-                asignacion.put("contacto_id", contacto.getId()); asignacion.put("monto_deuda", deuda);
+                asignacion.put("contacto_id", contacto.getId());
+                asignacion.put("monto_deuda", deudas.get(contacto.getId()));
                 database.insertOrThrow(DatabaseHelper.TABLE_ASIGNACIONES_COMPARTIDAS, null, asignacion);
             }
-            if (totalAsignado > montoTotal) throw new IllegalArgumentException("Las deudas superan el total.");
             database.setTransactionSuccessful();
         } finally { database.endTransaction(); }
+    }
+
+    private Map<Long, Long> resolverDeudas(List<Contacto> contactos, String descripcion, long montoTotal,
+                                            Map<Long, Long> asignaciones, long montoUsuario) {
+        if (contactos == null || contactos.isEmpty() || descripcion == null
+                || descripcion.trim().isEmpty() || montoTotal <= 0) {
+            throw new IllegalArgumentException("Datos de división inválidos.");
+        }
+        List<Long> ids = new ArrayList<>();
+        for (Contacto contacto : contactos) ids.add(contacto == null ? null : contacto.getId());
+        SharedExpenseRules.validarParticipantes(ids);
+        Map<Long, Long> resultado = new LinkedHashMap<>();
+        if (asignaciones == null || asignaciones.isEmpty()) {
+            SharedExpenseRules.DivisionEquitativa division =
+                    SharedExpenseRules.dividirEquitativamente(montoTotal, contactos.size());
+            for (Contacto contacto : contactos) resultado.put(contacto.getId(), division.getMontoPorContacto());
+            return resultado;
+        }
+        SharedExpenseRules.validarAsignacionesPersonalizadas(montoTotal, ids, asignaciones, montoUsuario);
+        for (Contacto contacto : contactos) resultado.put(contacto.getId(), asignaciones.get(contacto.getId()));
+        return resultado;
+    }
+
+    private long montoUsuarioCompatible(List<Contacto> contactos, long montoTotal,
+                                         Map<Long, Long> asignaciones) {
+        if (asignaciones == null || asignaciones.isEmpty()) {
+            return SharedExpenseRules.dividirEquitativamente(montoTotal, contactos.size()).getMontoUsuario();
+        }
+        long suma = 0L;
+        for (Long monto : asignaciones.values()) suma += monto == null ? 0L : monto;
+        return montoTotal - suma;
     }
 }

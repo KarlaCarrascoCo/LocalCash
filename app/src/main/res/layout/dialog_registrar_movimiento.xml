@@ -189,13 +189,37 @@
             android:orientation="vertical"
             android:visibility="gone">
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/location_section_title"
+                android:textColor="@color/lc_green_dark"
+                android:textStyle="bold" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_clear_location"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/action_no_location" />
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/button_capture_location"
                 style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="@string/action_capture_location" />
+                android:text="@string/action_use_current_location" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_pick_location_map"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/action_pick_location_map" />
 
             <TextView
                 android:id="@+id/text_location_status"

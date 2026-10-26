@@ -13,7 +13,7 @@ import com.localcash.app.model.Movimiento;
 public final class DatabaseHelper extends SQLiteOpenHelper {
 
     public static final String DATABASE_NAME = "localcash.db";
-    public static final int DATABASE_VERSION = 7;
+    public static final int DATABASE_VERSION = 13;
     public static final String TABLE_CUENTAS = "cuentas";
     public static final String TABLE_MOVIMIENTOS = "movimientos";
     public static final String TABLE_COMPRAS = "compras";
@@ -22,6 +22,9 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
     public static final String TABLE_COMPRAS_COMPARTIDAS = "compras_compartidas";
     public static final String TABLE_ITEMS_COMPARTIDOS = "items_compartidos";
     public static final String TABLE_ASIGNACIONES_COMPARTIDAS = "asignaciones_compartidas";
+    public static final String TABLE_LISTAS_COMPRAS = "listas_compras";
+    public static final String TABLE_PRODUCTOS_COMPRA = "productos_compra";
+    public static final String TABLE_LISTAS_CONTACTOS = "listas_contactos";
 
     public static final String COLUMN_ID = "id";
     public static final String COLUMN_CUENTA_ID = "cuenta_id";
@@ -39,6 +42,11 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_MEDIO_PAGO = "medio_pago";
     public static final String COLUMN_PRECIO_ESTIMADO = "precio_estimado";
     public static final String COLUMN_PAGADO = "pagado";
+    public static final String COLUMN_FECHA_PROGRAMADA = "fecha_programada";
+    public static final String COLUMN_FECHA_COMPLETADA = "fecha_completada";
+    public static final String COLUMN_ESTADO = "estado";
+    public static final String COLUMN_FECHA_INICIO = "fecha_inicio";
+    public static final String COLUMN_ESTADO_PRODUCTO = "estado_producto";
 
     private static final String TABLE_MOVIMIENTOS_MIGRACION = "movimientos_v2";
     private static final String MOVEMENT_DATA_COLUMNS = COLUMN_ID + ", " + COLUMN_TIPO + ", "
@@ -110,7 +118,8 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
         crearCuenta(database, "Efectivo", Cuenta.TIPO_EFECTIVO, null, true);
         database.execSQL(createMovimientosTable(TABLE_MOVIMIENTOS, true, true, true));
         crearIndicesMovimientos(database);
-        crearTablasComplementarias(database, true);
+        crearTablasContactosYGastos(database, true);
+        crearTablasListasCompras(database);
         crearTablasCompraCompartida(database);
     }
 
@@ -133,6 +142,24 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
         }
         if (oldVersion < 7) {
             migrarVersion6AVersion7(database);
+        }
+        if (oldVersion < 8) {
+            migrarVersion7AVersion8(database);
+        }
+        if (oldVersion < 9) {
+            migrarVersion8AVersion9(database);
+        }
+        if (oldVersion < 10) {
+            migrarVersion9AVersion10(database);
+        }
+        if (oldVersion < 11) {
+            migrarVersion10AVersion11(database);
+        }
+        if (oldVersion < 12) {
+            migrarVersion11AVersion12(database);
+        }
+        if (oldVersion < 13) {
+            migrarVersion12AVersion13(database);
         }
     }
 
@@ -280,6 +307,103 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
+    /** Reemplaza el registro de productos sueltos de prueba por listas, productos y contactos. */
+    private void migrarVersion7AVersion8(SQLiteDatabase database) {
+        database.beginTransaction();
+        try {
+            // La tabla heredada solo contenía datos de prueba del módulo Compras y no tiene hijos.
+            database.execSQL("DROP TABLE IF EXISTS " + TABLE_COMPRAS);
+            crearTablasListasCompras(database);
+            verificarClavesForaneas(database);
+            database.setTransactionSuccessful();
+        } finally {
+            database.endTransaction();
+        }
+    }
+
+    /** Los datos v8 del módulo Compras eran de prueba; se recrean con estados de compra explícitos. */
+    private void migrarVersion8AVersion9(SQLiteDatabase database) {
+        database.beginTransaction();
+        try {
+            database.execSQL("DROP TABLE IF EXISTS " + TABLE_LISTAS_CONTACTOS);
+            database.execSQL("DROP TABLE IF EXISTS " + TABLE_PRODUCTOS_COMPRA);
+            database.execSQL("DROP TABLE IF EXISTS " + TABLE_LISTAS_COMPRAS);
+            crearTablasListasCompras(database);
+            verificarClavesForaneas(database);
+            database.setTransactionSuccessful();
+        } finally {
+            database.endTransaction();
+        }
+    }
+
+    /** Registra el inicio efectivo de compra sin alterar fechas programadas ni listas existentes. */
+    private void migrarVersion9AVersion10(SQLiteDatabase database) {
+        database.beginTransaction();
+        try {
+            if (!tieneColumna(database, TABLE_LISTAS_COMPRAS, COLUMN_FECHA_INICIO)) {
+                database.execSQL("ALTER TABLE " + TABLE_LISTAS_COMPRAS + " ADD COLUMN "
+                        + COLUMN_FECHA_INICIO + " INTEGER");
+            }
+            database.execSQL("UPDATE " + TABLE_LISTAS_COMPRAS + " SET " + COLUMN_FECHA_INICIO + " = " + COLUMN_FECHA
+                    + " WHERE " + COLUMN_ESTADO + " = 'EN_COMPRA' AND " + COLUMN_FECHA_INICIO + " IS NULL");
+            verificarClavesForaneas(database);
+            database.setTransactionSuccessful();
+        } finally {
+            database.endTransaction();
+        }
+    }
+
+    /** La fecha programada deja de ser un estado: las listas heredadas siguen pendientes. */
+    private void migrarVersion10AVersion11(SQLiteDatabase database) {
+        database.beginTransaction();
+        try {
+            database.execSQL("UPDATE " + TABLE_LISTAS_COMPRAS + " SET " + COLUMN_ESTADO + " = 'PENDIENTE'"
+                    + " WHERE " + COLUMN_ESTADO + " = 'PROGRAMADA'");
+            verificarClavesForaneas(database);
+            database.setTransactionSuccessful();
+        } finally {
+            database.endTransaction();
+        }
+    }
+
+    /** Añade estados persistentes de producto sin alterar listas, cantidades ni precios existentes. */
+    private void migrarVersion11AVersion12(SQLiteDatabase database) {
+        database.beginTransaction();
+        try {
+            asegurarEstadosProductos(database);
+            verificarClavesForaneas(database);
+            database.setTransactionSuccessful();
+        } finally {
+            database.endTransaction();
+        }
+    }
+
+    /** Repara de forma idempotente instalaciones v12 incompletas sin reconstruir ninguna tabla. */
+    private void migrarVersion12AVersion13(SQLiteDatabase database) {
+        database.beginTransaction();
+        try {
+            asegurarEstadosProductos(database);
+            verificarClavesForaneas(database);
+            database.setTransactionSuccessful();
+        } finally {
+            database.endTransaction();
+        }
+    }
+
+    private static void asegurarEstadosProductos(SQLiteDatabase database) {
+        if (!tieneColumna(database, TABLE_PRODUCTOS_COMPRA, COLUMN_ESTADO_PRODUCTO)) {
+            database.execSQL("ALTER TABLE " + TABLE_PRODUCTOS_COMPRA + " ADD COLUMN "
+                    + COLUMN_ESTADO_PRODUCTO + " TEXT NOT NULL DEFAULT 'SIN_REVISAR'");
+        }
+        database.execSQL("UPDATE " + TABLE_PRODUCTOS_COMPRA + " SET " + COLUMN_ESTADO_PRODUCTO
+                + " = CASE WHEN adquirido = 1 THEN 'COMPRADO' WHEN lista_id IN (SELECT id FROM "
+                + TABLE_LISTAS_COMPRAS + " WHERE " + COLUMN_ESTADO + " = 'FINALIZADA') "
+                + "THEN 'NO_COMPRADO' ELSE 'SIN_REVISAR' END WHERE " + COLUMN_ESTADO_PRODUCTO
+                + " IS NULL OR " + COLUMN_ESTADO_PRODUCTO + " NOT IN ('SIN_REVISAR', 'COMPRADO', 'NO_COMPRADO')");
+        database.execSQL("UPDATE " + TABLE_PRODUCTOS_COMPRA + " SET adquirido = CASE WHEN "
+                + COLUMN_ESTADO_PRODUCTO + " = 'COMPRADO' THEN 1 ELSE 0 END");
+    }
+
     /** Comprueba los campos heredados antes de eliminar la tabla de versión 1. */
     private static void verificarDatosMigrados(SQLiteDatabase database) {
         long ausentesEnMigracion = DatabaseUtils.longForQuery(database,
@@ -344,6 +468,13 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
+    private static boolean tieneColumna(SQLiteDatabase database, String tabla, String columna) {
+        try (android.database.Cursor cursor = database.rawQuery("PRAGMA table_info(" + tabla + ")", null)) {
+            while (cursor.moveToNext()) if (columna.equals(cursor.getString(1))) return true;
+            return false;
+        }
+    }
+
     private static long crearCuenta(SQLiteDatabase database, String nombre, String tipo, String entidad,
                                     boolean incluyeEntidadFinanciera) {
         ContentValues values = new ContentValues();
@@ -374,17 +505,45 @@ public final class DatabaseHelper extends SQLiteOpenHelper {
                 + (incluyePrecioEstimado ? ", " + COLUMN_PRECIO_ESTIMADO
                 + " INTEGER NOT NULL DEFAULT 0 CHECK(" + COLUMN_PRECIO_ESTIMADO + " >= 0)" : "")
                 + ")");
+        crearTablasContactosYGastos(database, false);
+    }
+
+    private static void crearTablasContactosYGastos(SQLiteDatabase database, boolean incluyePagado) {
         database.execSQL("CREATE TABLE IF NOT EXISTS " + TABLE_CONTACTOS + " ("
                 + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT NOT NULL, telefono TEXT)");
         database.execSQL("CREATE TABLE IF NOT EXISTS " + TABLE_GASTOS_COMPARTIDOS + " ("
                 + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, contacto_id INTEGER NOT NULL, "
                 + COLUMN_DESCRIPCION + " TEXT NOT NULL, monto_total INTEGER NOT NULL CHECK(monto_total > 0), "
                 + "participantes INTEGER NOT NULL CHECK(participantes > 1), monto_deuda INTEGER NOT NULL CHECK(monto_deuda > 0), "
-                + COLUMN_PAGADO + " INTEGER NOT NULL DEFAULT 0 CHECK(" + COLUMN_PAGADO + " IN (0, 1)), "
+                + (incluyePagado ? COLUMN_PAGADO + " INTEGER NOT NULL DEFAULT 0 CHECK(" + COLUMN_PAGADO + " IN (0, 1)), " : "")
                 + COLUMN_FECHA + " INTEGER NOT NULL, FOREIGN KEY(contacto_id) REFERENCES "
                 + TABLE_CONTACTOS + "(" + COLUMN_ID + ") ON DELETE RESTRICT)");
         database.execSQL("CREATE INDEX IF NOT EXISTS idx_gastos_compartidos_contacto ON "
                 + TABLE_GASTOS_COMPARTIDOS + "(contacto_id)");
+    }
+
+    private static void crearTablasListasCompras(SQLiteDatabase database) {
+        database.execSQL("CREATE TABLE IF NOT EXISTS " + TABLE_LISTAS_COMPRAS + " ("
+                + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, lugar_tipo TEXT NOT NULL, "
+                + "lugar_personalizado TEXT, " + COLUMN_FECHA + " INTEGER NOT NULL, "
+                + COLUMN_FECHA_PROGRAMADA + " INTEGER, " + COLUMN_FECHA_INICIO + " INTEGER, " + COLUMN_ESTADO + " TEXT NOT NULL CHECK(" + COLUMN_ESTADO
+                + " IN ('PENDIENTE', 'PROGRAMADA', 'EN_COMPRA', 'FINALIZADA')), " + COLUMN_FECHA_COMPLETADA + " INTEGER)");
+        database.execSQL("CREATE TABLE IF NOT EXISTS " + TABLE_PRODUCTOS_COMPRA + " ("
+                + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, lista_id INTEGER NOT NULL, "
+                + "nombre TEXT NOT NULL, cantidad REAL NOT NULL CHECK(cantidad > 0), unidad TEXT NOT NULL, "
+                + "unidad_personalizada TEXT, " + COLUMN_PRECIO_ESTIMADO + " INTEGER NOT NULL DEFAULT 0 CHECK("
+                + COLUMN_PRECIO_ESTIMADO + " >= 0), precio_real INTEGER, adquirido INTEGER NOT NULL DEFAULT 0 CHECK(adquirido IN (0, 1)), "
+                + COLUMN_ESTADO_PRODUCTO + " TEXT NOT NULL DEFAULT 'SIN_REVISAR' CHECK(" + COLUMN_ESTADO_PRODUCTO
+                + " IN ('SIN_REVISAR', 'COMPRADO', 'NO_COMPRADO')), "
+                + "FOREIGN KEY(lista_id) REFERENCES " + TABLE_LISTAS_COMPRAS + "(" + COLUMN_ID + ") ON DELETE CASCADE)");
+        database.execSQL("CREATE TABLE IF NOT EXISTS " + TABLE_LISTAS_CONTACTOS + " (lista_id INTEGER NOT NULL, contacto_id INTEGER NOT NULL, "
+                + "PRIMARY KEY(lista_id, contacto_id), FOREIGN KEY(lista_id) REFERENCES " + TABLE_LISTAS_COMPRAS
+                + "(" + COLUMN_ID + ") ON DELETE CASCADE, FOREIGN KEY(contacto_id) REFERENCES " + TABLE_CONTACTOS
+                + "(" + COLUMN_ID + ") ON DELETE RESTRICT)");
+        database.execSQL("CREATE INDEX IF NOT EXISTS idx_listas_compras_estado_fecha ON " + TABLE_LISTAS_COMPRAS
+                + "(" + COLUMN_ESTADO + ", " + COLUMN_FECHA_PROGRAMADA + ")");
+        database.execSQL("CREATE INDEX IF NOT EXISTS idx_productos_compra_lista ON " + TABLE_PRODUCTOS_COMPRA + "(lista_id)");
+        database.execSQL("CREATE INDEX IF NOT EXISTS idx_listas_contactos_contacto ON " + TABLE_LISTAS_CONTACTOS + "(contacto_id)");
     }
 
     private static void crearTablasCompraCompartida(SQLiteDatabase database) {

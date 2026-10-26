@@ -45,9 +45,14 @@ public final class MovimientoFormDialog extends Dialog {
         void onPermisoUbicacionSolicitado();
     }
 
+    public interface OnUbicacionManualSolicitadaListener {
+        void onUbicacionManualSolicitada(Double latitude, Double longitude);
+    }
+
     private final OnMovimientoConfirmadoListener listener;
     private final OnCrearCuentaSolicitadaListener crearCuentaListener;
     private final OnPermisoUbicacionSolicitadoListener permisoUbicacionListener;
+    private final OnUbicacionManualSolicitadaListener ubicacionManualListener;
     private final List<Cuenta> cuentas;
     private TextInputLayout descriptionLayout;
     private TextInputLayout amountLayout;
@@ -75,7 +80,7 @@ public final class MovimientoFormDialog extends Dialog {
     public MovimientoFormDialog(@NonNull Context context,
                                 @NonNull List<Cuenta> cuentas,
                                 @NonNull OnMovimientoConfirmadoListener listener) {
-        this(context, cuentas, listener, null, null);
+        this(context, cuentas, listener, null, null, null);
     }
 
     public MovimientoFormDialog(@NonNull Context context,
@@ -83,11 +88,21 @@ public final class MovimientoFormDialog extends Dialog {
                                 @NonNull OnMovimientoConfirmadoListener listener,
                                 OnCrearCuentaSolicitadaListener crearCuentaListener,
                                 OnPermisoUbicacionSolicitadoListener permisoUbicacionListener) {
+        this(context, cuentas, listener, crearCuentaListener, permisoUbicacionListener, null);
+    }
+
+    public MovimientoFormDialog(@NonNull Context context,
+                                @NonNull List<Cuenta> cuentas,
+                                @NonNull OnMovimientoConfirmadoListener listener,
+                                OnCrearCuentaSolicitadaListener crearCuentaListener,
+                                OnPermisoUbicacionSolicitadoListener permisoUbicacionListener,
+                                OnUbicacionManualSolicitadaListener ubicacionManualListener) {
         super(context);
         this.cuentas = cuentas;
         this.listener = listener;
         this.crearCuentaListener = crearCuentaListener;
         this.permisoUbicacionListener = permisoUbicacionListener;
+        this.ubicacionManualListener = ubicacionManualListener;
     }
 
     @Override
@@ -130,6 +145,8 @@ public final class MovimientoFormDialog extends Dialog {
         findViewById(R.id.button_cancel_movement).setOnClickListener(view -> dismiss());
         findViewById(R.id.button_save_movement).setOnClickListener(view -> validarYConfirmar());
         findViewById(R.id.button_capture_location).setOnClickListener(view -> capturarUbicacion());
+        findViewById(R.id.button_clear_location).setOnClickListener(view -> limpiarUbicacion());
+        findViewById(R.id.button_pick_location_map).setOnClickListener(view -> solicitarUbicacionManual());
         findViewById(R.id.button_toggle_optional).setOnClickListener(view -> alternarOpcionales());
         findViewById(R.id.button_create_account).setOnClickListener(view -> {
             if (crearCuentaListener != null) {
@@ -326,6 +343,28 @@ public final class MovimientoFormDialog extends Dialog {
             return;
         }
         capturarUbicacion();
+    }
+
+    /** Recibe un punto confirmado por MapLibre sin sustituirlo por el GPS del dispositivo. */
+    public void onUbicacionManualSeleccionada(double nuevaLatitud, double nuevaLongitud) {
+        if (!isShowing()) {
+            return;
+        }
+        latitude = nuevaLatitud;
+        longitude = nuevaLongitud;
+        mostrarCoordenadasGuardadas();
+    }
+
+    private void solicitarUbicacionManual() {
+        if (ubicacionManualListener != null) {
+            ubicacionManualListener.onUbicacionManualSolicitada(latitude, longitude);
+        }
+    }
+
+    private void limpiarUbicacion() {
+        latitude = null;
+        longitude = null;
+        locationStatus.setText(R.string.location_optional);
     }
 
     private boolean tienePermisoUbicacion() {

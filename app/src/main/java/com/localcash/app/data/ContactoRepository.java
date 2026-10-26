@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteConstraintException;
 import android.database.DatabaseUtils;
 
 import com.localcash.app.model.Contacto;
@@ -44,8 +45,9 @@ public final class ContactoRepository {
                 DatabaseHelper.COLUMN_ID + " = ?", new String[]{String.valueOf(contacto.getId())}) > 0;
     }
 
-    /** Impide eliminar contactos que todavía tengan deudas asociadas. */
+    /** Impide eliminar contactos que todavía tengan deudas, compras o listas asociadas. */
     public boolean eliminarSiNoTieneDeudas(long contactoId) {
+        if (contactoId <= 0) return false;
         SQLiteDatabase database = helper.getWritableDatabase();
         database.beginTransaction();
         try {
@@ -53,10 +55,21 @@ public final class ContactoRepository {
                     "SELECT COUNT(*) FROM " + DatabaseHelper.TABLE_GASTOS_COMPARTIDOS
                             + " WHERE contacto_id = ?", new String[]{String.valueOf(contactoId)});
             if (deudas > 0) return false;
+            long asignaciones = DatabaseUtils.longForQuery(database,
+                    "SELECT COUNT(*) FROM " + DatabaseHelper.TABLE_ASIGNACIONES_COMPARTIDAS
+                            + " WHERE contacto_id = ?", new String[]{String.valueOf(contactoId)});
+            if (asignaciones > 0) return false;
+            long listas = DatabaseUtils.longForQuery(database,
+                    "SELECT COUNT(*) FROM " + DatabaseHelper.TABLE_LISTAS_CONTACTOS
+                            + " WHERE contacto_id = ?", new String[]{String.valueOf(contactoId)});
+            if (listas > 0) return false;
             boolean eliminado = database.delete(DatabaseHelper.TABLE_CONTACTOS,
                     DatabaseHelper.COLUMN_ID + " = ?", new String[]{String.valueOf(contactoId)}) > 0;
             database.setTransactionSuccessful();
             return eliminado;
+        } catch (SQLiteConstraintException exception) {
+            // Protección adicional si una relación nueva o heredada impide el borrado.
+            return false;
         } finally {
             database.endTransaction();
         }

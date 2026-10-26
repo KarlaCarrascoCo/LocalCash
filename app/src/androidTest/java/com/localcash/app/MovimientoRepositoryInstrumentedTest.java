@@ -18,9 +18,12 @@ import com.localcash.app.data.CuentaRepository;
 import com.localcash.app.data.DatabaseBackupManager;
 import com.localcash.app.data.DatabaseHelper;
 import com.localcash.app.data.MovimientoRepository;
+import com.localcash.app.data.ListaCompraRepository;
 import com.localcash.app.model.Cuenta;
 import com.localcash.app.model.Movimiento;
 import com.localcash.app.model.ResumenFinanciero;
+import com.localcash.app.model.ListaCompra;
+import com.localcash.app.model.ProductoCompra;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -87,6 +90,192 @@ public class MovimientoRepositoryInstrumentedTest {
             List<Movimiento> persistidos = repositorioReabierto.obtenerRecientes(10);
             assertEquals(1, persistidos.size());
             assertEquals(ingresoId, persistidos.get(0).getId());
+        } finally {
+            context.deleteDatabase(REPOSITORY_TEST_DATABASE);
+        }
+    }
+
+    @Test
+    public void productosDeCompraAceptanPrecioOpcionalDecimalYPersistenEnBaseAislada() {
+        Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        context.deleteDatabase(REPOSITORY_TEST_DATABASE);
+        try {
+            ListaCompraRepository compras = new ListaCompraRepository(context, REPOSITORY_TEST_DATABASE);
+            long listaId = compras.crearLista(ListaCompra.LUGAR_FERIA, null, null, null);
+            long sinPrecioId = compras.agregarProducto(listaId, new ProductoCompra(0, listaId,
+                    "Producto sin precio", 1d, "UNIDADES", null, 0L, null, false));
+            long naranjasId = compras.agregarProducto(listaId, new ProductoCompra(0, listaId,
+                    "Naranjas", 2d, "KG", null, 700L, null, false));
+            long decimalId = compras.agregarProducto(listaId, new ProductoCompra(0, listaId,
+                    "Verduras", 1.5d, "KG", null, 4000L, null, false));
+            assertTrue(sinPrecioId > 0); assertTrue(naranjasId > 0); assertTrue(decimalId > 0);
+            assertEquals(7400L, compras.obtenerLista(listaId).getTotalEstimado());
+
+            assertTrue(compras.iniciarCompra(listaId));
+            assertTrue(compras.actualizarProducto(new ProductoCompra(naranjasId, listaId,
+                    "Naranjas editadas", 2d, "KG", null, 700L, 700L, true)));
+            ListaCompraRepository trasReabrir = new ListaCompraRepository(context, REPOSITORY_TEST_DATABASE);
+            assertEquals(ListaCompra.ESTADO_EN_COMPRA, trasReabrir.obtenerLista(listaId).getEstado());
+            assertTrue(trasReabrir.obtenerLista(listaId).getFechaInicio() > 0);
+            assertEquals(3, trasReabrir.obtenerProductos(listaId).size());
+            assertEquals(700L, trasReabrir.obtenerProductos(listaId).get(2).getPrecioReal().longValue());
+        } finally {
+            context.deleteDatabase(REPOSITORY_TEST_DATABASE);
+        }
+    }
+
+    @Test
+    public void listaProgramadaComparteRegistroEntrePendientesYProgramadasEnBaseAislada() {
+        Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        context.deleteDatabase(REPOSITORY_TEST_DATABASE);
+        try {
+            ListaCompraRepository compras = new ListaCompraRepository(context, REPOSITORY_TEST_DATABASE);
+            long ahora = System.currentTimeMillis();
+            long fechaFutura = ahora + 48L * 60L * 60L * 1000L;
+            long listaId = compras.crearLista(ListaCompra.LUGAR_FERIA, null, fechaFutura, null);
+
+            assertEquals(1, compras.obtenerPendientes(ahora).size());
+            assertEquals(listaId, compras.obtenerPendientes(ahora).get(0).getId());
+            assertEquals(1, compras.obtenerProgramadas(ahora).size());
+            assertEquals(listaId, compras.obtenerProgramadas(ahora).get(0).getId());
+            assertEquals(ListaCompra.ESTADO_PENDIENTE, compras.obtenerLista(listaId).getEstado());
+
+            assertTrue(compras.iniciarCompra(listaId));
+            ListaCompra iniciada = compras.obtenerLista(listaId);
+            assertEquals(ListaCompra.ESTADO_EN_COMPRA, iniciada.getEstado());
+            assertTrue(iniciada.getFechaInicio() >= ahora);
+            assertEquals(fechaFutura, iniciada.getFechaProgramada().longValue());
+            assertEquals(1, compras.obtenerPendientes(ahora).size());
+            assertTrue(compras.obtenerProgramadas(ahora).isEmpty());
+        } finally {
+            context.deleteDatabase(REPOSITORY_TEST_DATABASE);
+        }
+    }
+
+    @Test
+    public void eliminarHistorialEnBaseAisladaConservaOtrasListasYEliminaSusProductos() {
+        Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        context.deleteDatabase(REPOSITORY_TEST_DATABASE);
+        try {
+            ListaCompraRepository compras = new ListaCompraRepository(context, REPOSITORY_TEST_DATABASE);
+            long historialId = compras.crearLista(ListaCompra.LUGAR_FERIA, null, null, null);
+            long pendienteId = compras.crearLista(ListaCompra.LUGAR_FARMACIA, null, null, null);
+            compras.agregarProducto(historialId, new ProductoCompra(0, historialId,
+                    "Producto adquirido", 1d, "UNIDADES", null, 1000L, 1200L, true));
+            assertTrue(compras.completarLista(historialId));
+
+            assertTrue(compras.eliminarRegistroFinalizado(historialId));
+            ListaCompraRepository reabierto = new ListaCompraRepository(context, REPOSITORY_TEST_DATABASE);
+            assertEquals(0, reabierto.obtenerHistorial().size());
+            assertEquals(1, reabierto.obtenerPendientes(System.currentTimeMillis()).size());
+            assertEquals(pendienteId, reabierto.obtenerPendientes(System.currentTimeMillis()).get(0).getId());
+            assertTrue(reabierto.obtenerProductos(historialId).isEmpty());
+            assertFalse(reabierto.eliminarRegistroFinalizado(pendienteId));
+        } finally {
+            context.deleteDatabase(REPOSITORY_TEST_DATABASE);
+        }
+    }
+
+    @Test
+    public void estadosDeProductoYTotalPagadoPersistenEnBaseAislada() {
+        Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        context.deleteDatabase(REPOSITORY_TEST_DATABASE);
+        try {
+            ListaCompraRepository compras = new ListaCompraRepository(context, REPOSITORY_TEST_DATABASE);
+            long listaId = compras.crearLista(ListaCompra.LUGAR_FERIA, null, null, null);
+            long productoId = compras.agregarProducto(listaId, new ProductoCompra(0, listaId,
+                    "Naranjas", 2d, "KG", null, 700L, null, ProductoCompra.ESTADO_SIN_REVISAR));
+            assertTrue(compras.iniciarCompra(listaId));
+            assertEquals(ProductoCompra.ESTADO_SIN_REVISAR,
+                    compras.obtenerProductos(listaId).get(0).getEstado());
+
+            assertTrue(compras.actualizarProducto(new ProductoCompra(productoId, listaId,
+                    "Naranjas", 2d, "KG", null, 700L, 900L, ProductoCompra.ESTADO_COMPRADO)));
+            assertEquals(1800L, compras.obtenerLista(listaId).getTotalReal());
+            assertTrue(compras.actualizarEstadoProducto(productoId, ProductoCompra.ESTADO_NO_COMPRADO));
+            assertEquals(0L, compras.obtenerLista(listaId).getTotalReal());
+            assertTrue(compras.actualizarEstadoProducto(productoId, ProductoCompra.ESTADO_SIN_REVISAR));
+
+            ListaCompraRepository reabierto = new ListaCompraRepository(context, REPOSITORY_TEST_DATABASE);
+            assertEquals(ProductoCompra.ESTADO_SIN_REVISAR,
+                    reabierto.obtenerProductos(listaId).get(0).getEstado());
+            assertEquals(0L, reabierto.obtenerLista(listaId).getTotalReal());
+        } finally {
+            context.deleteDatabase(REPOSITORY_TEST_DATABASE);
+        }
+    }
+
+    @Test
+    public void migracionVersionDiezConvierteProgramadaAPendienteSinPerderFechas() {
+        Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        context.deleteDatabase(MIGRATION_TEST_DATABASE);
+        try {
+            SQLiteDatabase versionDiez = context.openOrCreateDatabase(
+                    MIGRATION_TEST_DATABASE, Context.MODE_PRIVATE, null);
+            versionDiez.execSQL("CREATE TABLE listas_compras (id INTEGER PRIMARY KEY, lugar_tipo TEXT NOT NULL, "
+                    + "lugar_personalizado TEXT, fecha INTEGER NOT NULL, fecha_programada INTEGER, "
+                    + "fecha_inicio INTEGER, estado TEXT NOT NULL, fecha_completada INTEGER)");
+            versionDiez.execSQL("CREATE TABLE productos_compra (id INTEGER PRIMARY KEY, lista_id INTEGER NOT NULL, "
+                    + "nombre TEXT NOT NULL, cantidad REAL NOT NULL, unidad TEXT NOT NULL, unidad_personalizada TEXT, "
+                    + "precio_estimado INTEGER NOT NULL, precio_real INTEGER, adquirido INTEGER NOT NULL)");
+            versionDiez.execSQL("INSERT INTO listas_compras (id, lugar_tipo, fecha, fecha_programada, estado) "
+                    + "VALUES (?, ?, ?, ?, ?)", new Object[]{41L, "FERIA", 100L, 200L, "PROGRAMADA"});
+            versionDiez.execSQL("INSERT INTO productos_compra (id, lista_id, nombre, cantidad, unidad, precio_estimado, precio_real, adquirido) "
+                    + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)", new Object[]{51L, 41L, "Producto histórico", 1d, "UNIDADES", 500L, 600L, 1L});
+            versionDiez.setVersion(10);
+            versionDiez.close();
+
+            DatabaseHelper helper = new DatabaseHelper(context, MIGRATION_TEST_DATABASE);
+            SQLiteDatabase versionOnce = helper.getWritableDatabase();
+            assertEquals(DatabaseHelper.DATABASE_VERSION, versionOnce.getVersion());
+            try (Cursor cursor = versionOnce.rawQuery("SELECT id, fecha, fecha_programada, estado "
+                    + "FROM listas_compras WHERE id = ?", new String[]{"41"})) {
+                assertTrue(cursor.moveToFirst());
+                assertEquals(41L, cursor.getLong(0));
+                assertEquals(100L, cursor.getLong(1));
+                assertEquals(200L, cursor.getLong(2));
+                assertEquals(ListaCompra.ESTADO_PENDIENTE, cursor.getString(3));
+            }
+            try (Cursor cursor = versionOnce.rawQuery("SELECT id, estado_producto FROM productos_compra WHERE id = ?", new String[]{"51"})) {
+                assertTrue(cursor.moveToFirst());
+                assertEquals(51L, cursor.getLong(0));
+                assertEquals(ProductoCompra.ESTADO_COMPRADO, cursor.getString(1));
+            }
+            helper.close();
+        } finally {
+            context.deleteDatabase(MIGRATION_TEST_DATABASE);
+        }
+    }
+
+    /** Las coordenadas de cada movimiento se guardan y recuperan de forma independiente. */
+    @Test
+    public void movimientosConCoordenadasIndependientesUsanSoloBaseAislada() {
+        Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        context.deleteDatabase(REPOSITORY_TEST_DATABASE);
+        try {
+            CuentaRepository cuentas = new CuentaRepository(context, REPOSITORY_TEST_DATABASE);
+            long cuentaId = cuentas.obtenerTodas().get(0).getId();
+            MovimientoRepository movimientos = new MovimientoRepository(context, REPOSITORY_TEST_DATABASE);
+
+            long primeroId = movimientos.insertar(new Movimiento(0, cuentaId,
+                    Movimiento.TIPO_GASTO, "Ubicación uno", 1000L, "Otros", 1000L,
+                    null, -33.4489d, -70.6693d, null, Movimiento.MEDIO_EFECTIVO));
+            long segundoId = movimientos.insertar(new Movimiento(0, cuentaId,
+                    Movimiento.TIPO_GASTO, "Ubicación dos", 2000L, "Otros", 2000L,
+                    null, -33.4500d, -70.6500d, null, Movimiento.MEDIO_EFECTIVO));
+
+            Movimiento primero = null;
+            Movimiento segundo = null;
+            for (Movimiento movimiento : movimientos.obtenerRecientes(10)) {
+                if (movimiento.getId() == primeroId) primero = movimiento;
+                if (movimiento.getId() == segundoId) segundo = movimiento;
+            }
+            assertTrue(primero != null);
+            assertTrue(segundo != null);
+            assertEquals(-33.4489d, primero.getLatitud(), 0.000001d);
+            assertEquals(-70.6693d, primero.getLongitud(), 0.000001d);
+            assertEquals(-33.4500d, segundo.getLatitud(), 0.000001d);
+            assertEquals(-70.6500d, segundo.getLongitud(), 0.000001d);
         } finally {
             context.deleteDatabase(REPOSITORY_TEST_DATABASE);
         }
@@ -298,7 +487,7 @@ public class MovimientoRepositoryInstrumentedTest {
 
             DatabaseHelper helper = new DatabaseHelper(context, MIGRATION_TEST_DATABASE);
             SQLiteDatabase versionCinco = helper.getWritableDatabase();
-            assertEquals(5, versionCinco.getVersion());
+            assertEquals(DatabaseHelper.DATABASE_VERSION, versionCinco.getVersion());
             try (Cursor cursor = versionCinco.rawQuery("SELECT id, descripcion, monto, latitud, longitud, "
                     + "direccion_aproximada, medio_pago FROM movimientos", null)) {
                 assertTrue(cursor.moveToFirst());
@@ -311,7 +500,7 @@ public class MovimientoRepositoryInstrumentedTest {
                 assertEquals(Movimiento.MEDIO_EFECTIVO, cursor.getString(6));
             }
             try (Cursor cursor = versionCinco.rawQuery("SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' "
-                    + "AND name IN ('compras', 'contactos', 'gastos_compartidos')", null)) {
+                    + "AND name IN ('listas_compras', 'productos_compra', 'listas_contactos')", null)) {
                 assertTrue(cursor.moveToFirst());
                 assertEquals(3L, cursor.getLong(0));
             }
@@ -364,7 +553,7 @@ public class MovimientoRepositoryInstrumentedTest {
 
             DatabaseHelper helper = new DatabaseHelper(context, MIGRATION_TEST_DATABASE);
             SQLiteDatabase versionCinco = helper.getWritableDatabase();
-            assertEquals(5, versionCinco.getVersion());
+            assertEquals(DatabaseHelper.DATABASE_VERSION, versionCinco.getVersion());
             try (Cursor cursor = versionCinco.rawQuery("SELECT m.id, m.descripcion, m.monto, m.fecha, "
                     + "m.latitud, m.longitud, m.direccion_aproximada, m.medio_pago, m.cuenta_id, c.nombre, c.tipo, c.entidad_financiera "
                     + "FROM movimientos m INNER JOIN cuentas c ON c.id = m.cuenta_id", null)) {
@@ -384,15 +573,6 @@ public class MovimientoRepositoryInstrumentedTest {
             }
             try (Cursor foreignKeyCheck = versionCinco.rawQuery("PRAGMA foreign_key_check", null)) {
                 assertEquals(0, foreignKeyCheck.getCount());
-            }
-            try (Cursor cursor = versionCinco.rawQuery("SELECT id, nombre, cantidad, completada, fecha, precio_estimado FROM compras", null)) {
-                assertTrue(cursor.moveToFirst());
-                assertEquals(12L, cursor.getLong(0));
-                assertEquals("Pan", cursor.getString(1));
-                assertEquals(2L, cursor.getLong(2));
-                assertEquals(0L, cursor.getLong(3));
-                assertEquals(888L, cursor.getLong(4));
-                assertEquals(0L, cursor.getLong(5));
             }
             try (Cursor cursor = versionCinco.rawQuery("SELECT g.id, c.id, c.nombre, g.descripcion, "
                     + "g.monto_total, g.participantes, g.monto_deuda, g.fecha "
@@ -454,7 +634,7 @@ public class MovimientoRepositoryInstrumentedTest {
 
             DatabaseHelper helper = new DatabaseHelper(context, MIGRATION_TEST_DATABASE);
             SQLiteDatabase versionCinco = helper.getWritableDatabase();
-            assertEquals(5, versionCinco.getVersion());
+            assertEquals(DatabaseHelper.DATABASE_VERSION, versionCinco.getVersion());
             try (Cursor cursor = versionCinco.rawQuery("SELECT m.id, m.descripcion, m.monto, m.fecha, "
                     + "m.latitud, m.longitud, m.direccion_aproximada, m.medio_pago, m.cuenta_id, "
                     + "c.nombre, c.tipo, c.entidad_financiera FROM movimientos m "
@@ -473,18 +653,85 @@ public class MovimientoRepositoryInstrumentedTest {
                 assertEquals(Cuenta.TIPO_TARJETA_CREDITO, cursor.getString(10));
                 assertTrue(cursor.isNull(11));
             }
-            try (Cursor cursor = versionCinco.rawQuery("SELECT id, nombre, cantidad, completada, fecha, precio_estimado FROM compras", null)) {
-                assertTrue(cursor.moveToFirst());
-                assertEquals(8L, cursor.getLong(0));
-                assertEquals("Leche", cursor.getString(1));
-                assertEquals(2L, cursor.getLong(2));
-                assertEquals(1L, cursor.getLong(3));
-                assertEquals(3456L, cursor.getLong(4));
-                assertEquals(0L, cursor.getLong(5));
-            }
             try (Cursor foreignKeyCheck = versionCinco.rawQuery("PRAGMA foreign_key_check", null)) {
                 assertEquals(0, foreignKeyCheck.getCount());
             }
+            helper.close();
+        } finally {
+            context.deleteDatabase(MIGRATION_TEST_DATABASE);
+        }
+    }
+
+    @Test
+    public void migracionVersionSieteReemplazaSoloComprasPorListasRelacionadasEnBaseAislada() {
+        Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        context.deleteDatabase(MIGRATION_TEST_DATABASE);
+        try {
+            SQLiteDatabase versionSiete = context.openOrCreateDatabase(
+                    MIGRATION_TEST_DATABASE, Context.MODE_PRIVATE, null);
+            versionSiete.execSQL("CREATE TABLE contactos (id INTEGER PRIMARY KEY, nombre TEXT NOT NULL, telefono TEXT)");
+            versionSiete.execSQL("CREATE TABLE compras (id INTEGER PRIMARY KEY, nombre TEXT NOT NULL, cantidad INTEGER NOT NULL, completada INTEGER NOT NULL, fecha INTEGER NOT NULL, precio_estimado INTEGER NOT NULL DEFAULT 0)");
+            versionSiete.execSQL("INSERT INTO contactos (id, nombre, telefono) VALUES (?, ?, ?)",
+                    new Object[]{44L, "Contacto de prueba", "900000000"});
+            versionSiete.execSQL("INSERT INTO compras (id, nombre, cantidad, completada, fecha, precio_estimado) VALUES (?, ?, ?, ?, ?, ?)",
+                    new Object[]{17L, "Dato de prueba reemplazable", 1L, 0L, 100L, 200L});
+            versionSiete.setVersion(7);
+            versionSiete.close();
+
+            DatabaseHelper helper = new DatabaseHelper(context, MIGRATION_TEST_DATABASE);
+            SQLiteDatabase versionOcho = helper.getWritableDatabase();
+            assertEquals(DatabaseHelper.DATABASE_VERSION, versionOcho.getVersion());
+            try (Cursor cursor = versionOcho.rawQuery("SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'compras'", null)) {
+                assertTrue(cursor.moveToFirst());
+                assertEquals(0L, cursor.getLong(0));
+            }
+            versionOcho.execSQL("INSERT INTO listas_compras (id, lugar_tipo, fecha, estado) VALUES (?, ?, ?, ?)",
+                    new Object[]{70L, "FERIA", 200L, "PENDIENTE"});
+            versionOcho.execSQL("INSERT INTO productos_compra (lista_id, nombre, cantidad, unidad, precio_estimado, adquirido) VALUES (?, ?, ?, ?, ?, ?)",
+                    new Object[]{70L, "Manzanas", 2d, "KG", 1000L, 0L});
+            versionOcho.execSQL("INSERT INTO listas_contactos (lista_id, contacto_id) VALUES (?, ?)", new Object[]{70L, 44L});
+            try (Cursor cursor = versionOcho.rawQuery("PRAGMA foreign_key_check", null)) {
+                assertEquals(0, cursor.getCount());
+            }
+            try {
+                versionOcho.delete("contactos", "id = ?", new String[]{"44"});
+                fail("El contacto asociado a una lista no debe eliminarse.");
+            } catch (SQLiteConstraintException expected) {
+                // La relación con listas se protege correctamente.
+            }
+            helper.close();
+        } finally {
+            context.deleteDatabase(MIGRATION_TEST_DATABASE);
+        }
+    }
+
+    @Test
+    public void migracionVersionOchoRecreaSoloTablasDeComprasConEstadosEnBaseAislada() {
+        Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        context.deleteDatabase(MIGRATION_TEST_DATABASE);
+        try {
+            SQLiteDatabase versionOcho = context.openOrCreateDatabase(MIGRATION_TEST_DATABASE, Context.MODE_PRIVATE, null);
+            versionOcho.execSQL("CREATE TABLE contactos (id INTEGER PRIMARY KEY, nombre TEXT NOT NULL, telefono TEXT)");
+            versionOcho.execSQL("CREATE TABLE listas_compras (id INTEGER PRIMARY KEY, lugar_tipo TEXT NOT NULL, lugar_personalizado TEXT, fecha INTEGER NOT NULL, fecha_programada INTEGER, completada INTEGER NOT NULL, fecha_completada INTEGER)");
+            versionOcho.execSQL("CREATE TABLE productos_compra (id INTEGER PRIMARY KEY, lista_id INTEGER NOT NULL, nombre TEXT NOT NULL, cantidad REAL NOT NULL, unidad TEXT NOT NULL, unidad_personalizada TEXT, precio_estimado INTEGER NOT NULL, precio_real INTEGER, comprado INTEGER NOT NULL)");
+            versionOcho.execSQL("CREATE TABLE listas_contactos (lista_id INTEGER NOT NULL, contacto_id INTEGER NOT NULL)");
+            versionOcho.execSQL("INSERT INTO contactos (id, nombre) VALUES (?, ?)", new Object[]{9L, "Contacto conservado"});
+            versionOcho.execSQL("INSERT INTO listas_compras (id, lugar_tipo, fecha, completada) VALUES (?, ?, ?, ?)", new Object[]{1L, "FERIA", 100L, 0L});
+            versionOcho.setVersion(8);
+            versionOcho.close();
+
+            DatabaseHelper helper = new DatabaseHelper(context, MIGRATION_TEST_DATABASE);
+            SQLiteDatabase versionNueve = helper.getWritableDatabase();
+            assertEquals(DatabaseHelper.DATABASE_VERSION, versionNueve.getVersion());
+            try (Cursor cursor = versionNueve.rawQuery("SELECT nombre FROM contactos WHERE id = 9", null)) {
+                assertTrue(cursor.moveToFirst());
+                assertEquals("Contacto conservado", cursor.getString(0));
+            }
+            try (Cursor cursor = versionNueve.rawQuery("PRAGMA table_info(listas_compras)", null)) {
+                boolean hasEstado = false; while (cursor.moveToNext()) if ("estado".equals(cursor.getString(1))) hasEstado = true;
+                assertTrue(hasEstado);
+            }
+            try (Cursor cursor = versionNueve.rawQuery("PRAGMA foreign_key_check", null)) { assertEquals(0, cursor.getCount()); }
             helper.close();
         } finally {
             context.deleteDatabase(MIGRATION_TEST_DATABASE);

@@ -4,19 +4,15 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.localcash.app.security.AuthSession;
+import com.localcash.app.security.ProtectedActivity;
 
 /** Accesos a módulos offline complementarios. */
-public final class MasActivity extends AppCompatActivity {
+public final class MasActivity extends ProtectedActivity {
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
-        if (!AuthSession.isAuthenticated()) {
-            startActivity(new Intent(this, WelcomeActivity.class));
-            finish();
-            return;
-        }
+        if (!requireAuthenticatedSession()) return;
         setContentView(R.layout.activity_mas);
         findViewById(R.id.button_more_back).setOnClickListener(v -> finish());
         findViewById(R.id.button_more_accounts).setOnClickListener(v -> abrir(CuentasActivity.class));
@@ -47,10 +43,7 @@ public final class MasActivity extends AppCompatActivity {
                 .setMessage(R.string.security_message)
                 .setNegativeButton(R.string.action_cancel, null)
                 .setPositiveButton(R.string.action_lock_now, (dialog, which) -> {
-                    AuthSession.clear();
-                    startActivity(new Intent(this, WelcomeActivity.class)
-                            .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP));
-                    finish();
+                    lockAndReturnToWelcome();
                 })
                 .show();
     }

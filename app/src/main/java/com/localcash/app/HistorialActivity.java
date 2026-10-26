@@ -9,13 +9,13 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
 import com.localcash.app.data.MovimientoRepository;
 import com.localcash.app.model.Cuenta;
 import com.localcash.app.model.Movimiento;
 import com.localcash.app.security.AuthSession;
+import com.localcash.app.security.ProtectedActivity;
 
 import java.text.DateFormat;
 import java.text.NumberFormat;
@@ -25,7 +25,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /** Consulta el historial completo almacenado localmente, sin límite de movimientos. */
-public final class HistorialActivity extends AppCompatActivity {
+public final class HistorialActivity extends ProtectedActivity {
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final NumberFormat currency = NumberFormat.getCurrencyInstance(new Locale("es", "CL"));
     private final DateFormat date = DateFormat.getDateInstance(DateFormat.MEDIUM, new Locale("es", "CL"));
@@ -37,11 +37,7 @@ public final class HistorialActivity extends AppCompatActivity {
 
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
-        if (!AuthSession.isAuthenticated()) {
-            startActivity(new Intent(this, WelcomeActivity.class));
-            finish();
-            return;
-        }
+        if (!requireAuthenticatedSession()) return;
         setContentView(R.layout.activity_historial);
         lista = findViewById(R.id.list_history);
         allButton = findViewById(R.id.button_history_filter_all);

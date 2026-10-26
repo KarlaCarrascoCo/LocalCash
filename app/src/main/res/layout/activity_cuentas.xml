@@ -3,7 +3,7 @@
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
         <TextView style="@style/TextAppearance.Material3.HeadlineMedium" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/accounts_title" android:textColor="@color/lc_green_dark" />
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="@string/accounts_subtitle" android:textColor="@color/lc_text_secondary" />
-        <com.google.android.material.button.MaterialButton android:id="@+id/button_add_account" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="16dp" android:text="@string/action_add_account" app:backgroundTint="@color/lc_orange_earth" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/button_add_account" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="16dp" android:text="@string/action_add_account" android:textColor="@color/white" app:backgroundTint="@color/lc_account_create" app:cornerRadius="16dp" app:icon="@drawable/ic_add" app:iconGravity="textStart" app:iconPadding="8dp" app:iconTint="@color/white" />
         <LinearLayout android:id="@+id/list_accounts" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:orientation="vertical" />
     </LinearLayout>
 </ScrollView>

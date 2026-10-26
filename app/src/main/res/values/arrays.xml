@@ -34,4 +34,10 @@
         <item>Cuenta digital</item>
         <item>Otro</item>
     </string-array>
+    <string-array name="shopping_places">
+        <item>Feria</item><item>Supermercado</item><item>Mall</item><item>Farmacia</item><item>Otro lugar</item>
+    </string-array>
+    <string-array name="shopping_units">
+        <item>unidades</item><item>kg</item><item>gramos</item><item>litros</item><item>pares</item><item>paquetes</item><item>Otra</item>
+    </string-array>
 </resources>

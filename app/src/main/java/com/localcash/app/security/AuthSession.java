@@ -7,4 +7,6 @@ public final class AuthSession {
     public static boolean isAuthenticated() { return authenticated; }
     public static void authenticate() { authenticated = true; }
     public static void clear() { authenticated = false; }
+    /** Se invoca cuando Android confirma que ninguna ventana de LocalCash permanece visible. */
+    public static void invalidateForBackground() { clear(); }
 }
