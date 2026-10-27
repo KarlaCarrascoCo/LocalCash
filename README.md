@@ -41,6 +41,10 @@ El estilo cartográfico se obtiene desde OpenFreeMap. Las operaciones financiera
 | Interfaces y recursos | `app/src/main/res` |
 | Pruebas unitarias | `app/src/test` |
 
+## Documentación técnica
+
+[Consultar documentación técnica](docs/DOCUMENTACION_TECNICA.md)
+
 ## Compilación y verificación
 
 ```powershell
